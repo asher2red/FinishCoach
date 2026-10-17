@@ -6,13 +6,16 @@
     "@expo/ui": "~58.0.20",
     "expo": "~58.0.14",
     "expo-constants": "~58.0.12",
+    "expo-crypto": "~58.0.7",
     "expo-device": "~58.0.5",
     "expo-font": "~58.0.8",
     "expo-glass-effect": "~58.0.4",
     "expo-image": "~58.0.15",
     "expo-linking": "~58.0.13",
+    "expo-notifications": "~58.1.5",
     "expo-router": "~58.0.23",
     "expo-splash-screen": "~58.0.10",
+    "expo-sqlite": "~58.0.13",
     "expo-status-bar": "~58.0.3",
     "expo-symbols": "~58.0.4",
     "expo-system-ui": "~58.0.6",
@@ -28,16 +31,28 @@
     "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/react": "~19.3.0",
-    "typescript": "~6.0.3"
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "^58.0.4",
+    "fake-indexeddb": "^6.2.6",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.5"
   },
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build:web": "expo export --platform web",
+    "test:e2e": "playwright test",
+    "preview:web": "node scripts/serve-web.mjs",
+    "format": "prettier --write src tests e2e docs *.json *.ts *.js",
+    "build:native": "expo export --platform android --platform ios --output-dir dist-native"
   },
   "private": true
 }
