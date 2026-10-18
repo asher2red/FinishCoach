@@ -1,13 +1,6 @@
-import React, { useState, useSyncExternalStore, useMemo } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Modal,
-  useColorScheme,
-  Platform,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useState, useMemo } from "react";
+import { View, Text, ScrollView, Modal, Platform } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../data/context";
 import {
   Routine,
@@ -33,26 +26,18 @@ import {
   Field,
   Empty,
 } from "../ui/design";
-import { normalizeSettings } from "../domain/settings";
 import { ThemeSettings } from "../ui/ThemeSettings";
 import { BrandMark } from "../ui/BrandMark";
-import { getPalette } from "../ui/tokens";
-import { ActionIconName } from "../ui/ActionIcon";
+import { useAppTheme } from "../ui/useAppTheme";
+import { MenuNavigation } from "../navigation/MenuNavigation";
+import { navigateToPage } from "../navigation/menu";
 import { DateField } from "../ui/DateField";
 import { TimeField } from "../ui/TimeField";
 import { AnalyticsDashboard } from "../ui/AnalyticsDashboard";
 import { NotificationSettings } from "../ui/NotificationSettings";
 import { shiftPeriod } from "../domain/pickers";
 import { periodRange, Period } from "../domain/analytics";
-const pages = ["오늘", "루틴", "기록", "통계", "프로젝트", "설정"];
-const pageIcons: ActionIconName[] = [
-  "today",
-  "routines",
-  "history",
-  "statistics",
-  "projects",
-  "settings",
-];
+const EditorInsets = Platform.OS === "web" ? React.Fragment : SafeAreaProvider;
 const activities = [
   "독서",
   "운동",
@@ -80,30 +65,9 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
     reload,
     clearError,
   } = useStore();
-  const scheme = useColorScheme();
-  // Match the static server snapshot before applying the browser's preference.
-  const hydrated = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-  const dark = hydrated && scheme === "dark";
-  const themeColor = normalizeSettings(s.settings).themeColor;
-  const c = useMemo(() => getPalette(themeColor, dark), [themeColor, dark]);
+  const c = useAppTheme();
   const page = section;
-  const setPage = (p: string) =>
-    router.replace(
-      (
-        [
-          "/",
-          "/routines",
-          "/history",
-          "/statistics",
-          "/projects",
-          "/settings",
-        ] as const
-      )[pages.indexOf(p)],
-    );
+  const setPage = navigateToPage;
   const [routine, setRoutine] = useState<Routine | null>(null),
     [project, setProject] = useState<Project | null>(null),
     [log, setLog] = useState<CompletionLog | null>(null),
@@ -187,12 +151,15 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
     <Theme.Provider value={c}>
       <SafeAreaView
         testID="app-shell"
+        edges={Platform.OS === "web" ? undefined : ["top", "left", "right"]}
         style={{ flex: 1, backgroundColor: c.bg }}
       >
         <ScrollView
+          testID="screen-scroll"
+          style={{ flex: 1 }}
           contentContainerStyle={{
             padding: 20,
-            paddingBottom: 80,
+            paddingBottom: Platform.OS === "web" ? 80 : 24,
             alignItems: "center",
           }}
         >
@@ -205,18 +172,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                 onPress={() => setPage("설정")}
               />
             </Row>
-            <Row>
-              {pages.map((p, index) => (
-                <Button
-                  key={p}
-                  variant="tile"
-                  icon={pageIcons[index]}
-                  title={p}
-                  selected={page === p}
-                  onPress={() => setPage(p)}
-                />
-              ))}
-            </Row>
+            <MenuNavigation activePage={page} />
             <View>
               <Text style={{ color: c.muted }}>
                 {new Date().toLocaleDateString("ko-KR", {
@@ -886,403 +842,410 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
           animationType="slide"
           onRequestClose={close}
         >
-          <SafeAreaView
-            testID="app-shell"
-            style={{ flex: 1, backgroundColor: c.bg }}
-          >
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ padding: 24, alignItems: "center" }}
+          <EditorInsets>
+            <SafeAreaView
+              testID="app-shell"
+              style={{ flex: 1, backgroundColor: c.bg }}
             >
-              <View style={{ width: "100%", maxWidth: 640, gap: 18 }}>
-                <Row>
-                  <View style={{ flex: 1 }}>
-                    <T big>
-                      {routine
-                        ? "나의 루틴"
-                        : project
-                          ? "나의 프로젝트"
-                          : "실행 기록 수정"}
-                    </T>
-                  </View>
-                  <Button title="닫기" disabled={busy} onPress={close} />
-                </Row>
-                {!!error && <T>{error}</T>}
-                {routine && (
-                  <>
-                    <T>1. 어떤 활동을 할까요?</T>
-                    <Row>
-                      {[
-                        ...new Set([
-                          ...activities,
-                          ...s.routines.map((r) => r.category),
-                        ]),
-                      ].map((a) => (
-                        <Button
-                          key={a}
-                          title={a}
-                          selected={routine.category === a}
-                          onPress={() =>
-                            change({
-                              category: a,
-                              title: a,
-                              durationMinutes: ["취침", "기상"].includes(a)
-                                ? null
-                                : 20,
-                            })
-                          }
-                        />
-                      ))}
-                    </Row>
-                    <Field
-                      label="활동 이름 (직접 추가 가능)"
-                      value={routine.title}
-                      onChange={(title) =>
-                        change({
-                          title,
-                          category: title.trim() || "기타",
-                        })
-                      }
-                    />
-                    <Field
-                      label="설명 (선택)"
-                      value={routine.description ?? ""}
-                      onChange={(description) =>
-                        change({ description: description || null })
-                      }
-                    />
-                    <T>2. 얼마나 자주 할까요?</T>
-                    <Row>
-                      {(
-                        Object.keys(frequencies) as (keyof typeof frequencies)[]
-                      ).map((f) => (
-                        <Button
-                          key={f}
-                          title={frequencies[f]}
-                          selected={routine.frequencyType === f}
-                          onPress={() => change({ frequencyType: f })}
-                        />
-                      ))}
-                    </Row>
-                    {routine.frequencyType === "weekly" && (
-                      <>
-                        <T>주간 목표 횟수</T>
-                        <Row>
-                          {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                            <Button
-                              key={n}
-                              title={`${n}회`}
-                              selected={routine.weeklyTarget === n}
-                              onPress={() => change({ weeklyTarget: n })}
-                            />
-                          ))}
-                        </Row>
-                        <T>주간 목표는 특정 날짜에 강제 배정하지 않습니다.</T>
-                      </>
-                    )}
-                    {routine.frequencyType === "weekdays" && (
+              <ScrollView
+                automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{ padding: 24, alignItems: "center" }}
+              >
+                <View style={{ width: "100%", maxWidth: 640, gap: 18 }}>
+                  <Row>
+                    <View style={{ flex: 1 }}>
+                      <T big>
+                        {routine
+                          ? "나의 루틴"
+                          : project
+                            ? "나의 프로젝트"
+                            : "실행 기록 수정"}
+                      </T>
+                    </View>
+                    <Button title="닫기" disabled={busy} onPress={close} />
+                  </Row>
+                  {!!error && <T>{error}</T>}
+                  {routine && (
+                    <>
+                      <T>1. 어떤 활동을 할까요?</T>
                       <Row>
-                        {["일", "월", "화", "수", "목", "금", "토"].map(
-                          (d, i) => (
-                            <Button
-                              key={d}
-                              title={d}
-                              selected={routine.preferredDays.includes(i)}
-                              onPress={() =>
-                                change({
-                                  preferredDays: routine.preferredDays.includes(
-                                    i,
-                                  )
-                                    ? routine.preferredDays.filter(
-                                        (d) => d !== i,
-                                      )
-                                    : [...routine.preferredDays, i],
-                                })
-                              }
-                            />
-                          ),
-                        )}
-                      </Row>
-                    )}
-                    {!["취침", "기상"].includes(routine.category) && (
-                      <Row>
-                        {[10, 15, 20, 30, 45, 60].map((n) => (
+                        {[
+                          ...new Set([
+                            ...activities,
+                            ...s.routines.map((r) => r.category),
+                          ]),
+                        ].map((a) => (
                           <Button
-                            key={n}
-                            title={`${n}분`}
-                            selected={routine.durationMinutes === n}
-                            onPress={() => change({ durationMinutes: n })}
+                            key={a}
+                            title={a}
+                            selected={routine.category === a}
+                            onPress={() =>
+                              change({
+                                category: a,
+                                title: a,
+                                durationMinutes: ["취침", "기상"].includes(a)
+                                  ? null
+                                  : 20,
+                              })
+                            }
                           />
                         ))}
                       </Row>
-                    )}
-                    {!["취침", "기상"].includes(routine.category) && (
                       <Field
-                        label="소요 시간 (분, 선택)"
-                        numeric
-                        value={
-                          routine.durationMinutes === null
-                            ? ""
-                            : String(routine.durationMinutes)
-                        }
-                        onChange={(v) =>
+                        label="활동 이름 (직접 추가 가능)"
+                        value={routine.title}
+                        onChange={(title) =>
                           change({
-                            durationMinutes: v === "" ? null : Number(v),
+                            title,
+                            category: title.trim() || "기타",
                           })
                         }
                       />
-                    )}
-                    <DateField
-                      label={
-                        routine.frequencyType === "once" ? "실행일" : "시작일"
-                      }
-                      value={routine.startDate}
-                      onChange={(v) => change({ startDate: v! })}
-                    />
-                    {routine.frequencyType !== "once" && (
-                      <DateField
-                        label="종료일 (선택)"
-                        value={routine.endDate}
-                        optional
-                        min={routine.startDate}
-                        onChange={(endDate) => change({ endDate })}
+                      <Field
+                        label="설명 (선택)"
+                        value={routine.description ?? ""}
+                        onChange={(description) =>
+                          change({ description: description || null })
+                        }
                       />
-                    )}
-                    {routine.frequencyType !== "weekly" && (
-                      <>
-                        <TimeField
-                          label="알림 및 목표 시각"
-                          value={routine.reminderTime}
-                          optional
-                          onChange={(reminderTime) => change({ reminderTime })}
-                        />
-                        <T>
-                          비워 두면 알림 없이 오전 9시 일정으로 표시합니다. 상단
-                          알림 설정에서 권한을 허용하세요.
-                        </T>
-                      </>
-                    )}
-                    <Button
-                      title="루틴 저장"
-                      selected
-                      disabled={busy}
-                      onPress={() =>
-                        void mutate((s) => saveRoutine(s, routine)).then(
-                          (ok) => {
-                            if (ok) setRoutine(null);
-                          },
-                        )
-                      }
-                    />
-                  </>
-                )}
-                {project && (
-                  <>
-                    <Field
-                      label="프로젝트 제목"
-                      value={project.title}
-                      onChange={(title) => setProject({ ...project, title })}
-                    />
-                    <Field
-                      label="설명"
-                      value={project.description ?? ""}
-                      onChange={(description) =>
-                        setProject({
-                          ...project,
-                          description: description || null,
-                        })
-                      }
-                    />
-                    <DateField
-                      label="프로젝트 시작일"
-                      value={project.startedAt}
-                      onChange={(v) =>
-                        setProject({ ...project, startedAt: v! })
-                      }
-                    />
-                    <DateField
-                      label="프로젝트 목표일 (선택)"
-                      value={project.targetDate}
-                      optional
-                      min={project.startedAt}
-                      onChange={(targetDate) =>
-                        setProject({ ...project, targetDate })
-                      }
-                    />
-                    <Field
-                      label="완료 기준"
-                      value={project.completionCriteria ?? ""}
-                      onChange={(completionCriteria) =>
-                        setProject({
-                          ...project,
-                          completionCriteria: completionCriteria || null,
-                        })
-                      }
-                    />
-                    {milestoneDrafts.map((m, index) => (
-                      <Card key={m.id}>
-                        <Field
-                          label={`마일스톤 ${index + 1}`}
-                          value={m.title}
-                          onChange={(title) =>
-                            setMilestoneDrafts((ms) =>
-                              ms.map((x) =>
-                                x.id === m.id ? { ...x, title } : x,
-                              ),
-                            )
-                          }
-                        />
+                      <T>2. 얼마나 자주 할까요?</T>
+                      <Row>
+                        {(
+                          Object.keys(
+                            frequencies,
+                          ) as (keyof typeof frequencies)[]
+                        ).map((f) => (
+                          <Button
+                            key={f}
+                            title={frequencies[f]}
+                            selected={routine.frequencyType === f}
+                            onPress={() => change({ frequencyType: f })}
+                          />
+                        ))}
+                      </Row>
+                      {routine.frequencyType === "weekly" && (
+                        <>
+                          <T>주간 목표 횟수</T>
+                          <Row>
+                            {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                              <Button
+                                key={n}
+                                title={`${n}회`}
+                                selected={routine.weeklyTarget === n}
+                                onPress={() => change({ weeklyTarget: n })}
+                              />
+                            ))}
+                          </Row>
+                          <T>주간 목표는 특정 날짜에 강제 배정하지 않습니다.</T>
+                        </>
+                      )}
+                      {routine.frequencyType === "weekdays" && (
                         <Row>
-                          <Button
-                            title="위로"
-                            disabled={index === 0}
-                            onPress={() =>
-                              setMilestoneDrafts((ms) => {
-                                const next = [...ms];
-                                [next[index - 1], next[index]] = [
-                                  next[index],
-                                  next[index - 1],
-                                ];
-                                return next;
-                              })
-                            }
-                          />
-                          <Button
-                            title="아래로"
-                            disabled={index === milestoneDrafts.length - 1}
-                            onPress={() =>
-                              setMilestoneDrafts((ms) => {
-                                const next = [...ms];
-                                [next[index + 1], next[index]] = [
-                                  next[index],
-                                  next[index + 1],
-                                ];
-                                return next;
-                              })
-                            }
-                          />
+                          {["일", "월", "화", "수", "목", "금", "토"].map(
+                            (d, i) => (
+                              <Button
+                                key={d}
+                                title={d}
+                                selected={routine.preferredDays.includes(i)}
+                                onPress={() =>
+                                  change({
+                                    preferredDays:
+                                      routine.preferredDays.includes(i)
+                                        ? routine.preferredDays.filter(
+                                            (d) => d !== i,
+                                          )
+                                        : [...routine.preferredDays, i],
+                                  })
+                                }
+                              />
+                            ),
+                          )}
                         </Row>
-                      </Card>
-                    ))}
-                    <Field
-                      label="추가할 마일스톤 (선택)"
-                      value={milestone}
-                      onChange={setMilestone}
-                    />
-                    <T>
-                      저장 후 다시 편집하면 마일스톤을 계속 추가할 수 있습니다.
-                    </T>
-                    <Button
-                      title="프로젝트 저장"
-                      selected
-                      disabled={busy}
-                      onPress={() =>
-                        void mutate((s) => {
-                          saveProject(s, project);
-                          const p = project;
-                          milestoneDrafts.forEach((draft, index) => {
-                            if (!draft.title.trim())
-                              throw new Error("마일스톤 이름을 입력하세요.");
-                            const item = s.milestones.find(
-                              (m) => m.id === draft.id,
-                            );
-                            if (item) {
-                              item.title = draft.title.trim();
-                              item.sortOrder = index;
-                              item.updatedAt = new Date().toISOString();
-                            }
-                          });
-                          if (milestone.trim())
-                            s.milestones.push({
-                              ...stamp(),
-                              projectId: p.id,
-                              title: milestone.trim(),
-                              sortOrder: s.milestones.filter(
-                                (m) => m.projectId === p.id,
-                              ).length,
-                              completedAt: null,
-                            });
-                        }).then((ok) => {
-                          if (ok) {
-                            setProject(null);
-                            setMilestone("");
+                      )}
+                      {!["취침", "기상"].includes(routine.category) && (
+                        <Row>
+                          {[10, 15, 20, 30, 45, 60].map((n) => (
+                            <Button
+                              key={n}
+                              title={`${n}분`}
+                              selected={routine.durationMinutes === n}
+                              onPress={() => change({ durationMinutes: n })}
+                            />
+                          ))}
+                        </Row>
+                      )}
+                      {!["취침", "기상"].includes(routine.category) && (
+                        <Field
+                          label="소요 시간 (분, 선택)"
+                          numeric
+                          value={
+                            routine.durationMinutes === null
+                              ? ""
+                              : String(routine.durationMinutes)
                           }
-                        })
-                      }
-                    />
-                  </>
-                )}
-                {log && (
-                  <>
-                    <DateField
-                      label="완료 날짜"
-                      value={completionTime.slice(0, 10)}
-                      onChange={(v) =>
-                        setCompletionTime(v + completionTime.slice(10))
-                      }
-                    />
-                    <TimeField
-                      label="완료 시각"
-                      value={completionTime.slice(11)}
-                      onChange={(v) =>
-                        setCompletionTime(completionTime.slice(0, 11) + v)
-                      }
-                    />
-                    <Field
-                      label="실제 소요 시간 (분)"
-                      numeric
-                      value={
-                        log.actualDurationMinutes === null
-                          ? ""
-                          : String(log.actualDurationMinutes)
-                      }
-                      onChange={(v) =>
-                        setLog({
-                          ...log,
-                          actualDurationMinutes: v === "" ? null : Number(v),
-                        })
-                      }
-                    />
-                    <Field
-                      label="메모"
-                      value={log.note ?? ""}
-                      onChange={(note) =>
-                        setLog({ ...log, note: note || null })
-                      }
-                    />
-                    <Button
-                      title="기록 저장"
-                      selected
-                      disabled={busy}
-                      onPress={() =>
-                        void mutate((s) => {
-                          const completedAt =
-                            parseLocalDateTime(completionTime);
-                          if (
-                            log.actualDurationMinutes !== null &&
-                            (!Number.isFinite(log.actualDurationMinutes) ||
-                              log.actualDurationMinutes < 0)
+                          onChange={(v) =>
+                            change({
+                              durationMinutes: v === "" ? null : Number(v),
+                            })
+                          }
+                        />
+                      )}
+                      <DateField
+                        label={
+                          routine.frequencyType === "once" ? "실행일" : "시작일"
+                        }
+                        value={routine.startDate}
+                        onChange={(v) => change({ startDate: v! })}
+                      />
+                      {routine.frequencyType !== "once" && (
+                        <DateField
+                          label="종료일 (선택)"
+                          value={routine.endDate}
+                          optional
+                          min={routine.startDate}
+                          onChange={(endDate) => change({ endDate })}
+                        />
+                      )}
+                      {routine.frequencyType !== "weekly" && (
+                        <>
+                          <TimeField
+                            label="알림 및 목표 시각"
+                            value={routine.reminderTime}
+                            optional
+                            onChange={(reminderTime) =>
+                              change({ reminderTime })
+                            }
+                          />
+                          <T>
+                            비워 두면 알림 없이 오전 9시 일정으로 표시합니다.
+                            상단 알림 설정에서 권한을 허용하세요.
+                          </T>
+                        </>
+                      )}
+                      <Button
+                        title="루틴 저장"
+                        selected
+                        disabled={busy}
+                        onPress={() =>
+                          void mutate((s) => saveRoutine(s, routine)).then(
+                            (ok) => {
+                              if (ok) setRoutine(null);
+                            },
                           )
-                            throw new Error("소요 시간을 확인하세요.");
-                          const i = s.logs.findIndex(
-                            (l) => l.id === log.id && !l.deletedAt,
-                          );
-                          if (i < 0) throw new Error("기록이 없습니다.");
-                          s.logs[i] = {
+                        }
+                      />
+                    </>
+                  )}
+                  {project && (
+                    <>
+                      <Field
+                        label="프로젝트 제목"
+                        value={project.title}
+                        onChange={(title) => setProject({ ...project, title })}
+                      />
+                      <Field
+                        label="설명"
+                        value={project.description ?? ""}
+                        onChange={(description) =>
+                          setProject({
+                            ...project,
+                            description: description || null,
+                          })
+                        }
+                      />
+                      <DateField
+                        label="프로젝트 시작일"
+                        value={project.startedAt}
+                        onChange={(v) =>
+                          setProject({ ...project, startedAt: v! })
+                        }
+                      />
+                      <DateField
+                        label="프로젝트 목표일 (선택)"
+                        value={project.targetDate}
+                        optional
+                        min={project.startedAt}
+                        onChange={(targetDate) =>
+                          setProject({ ...project, targetDate })
+                        }
+                      />
+                      <Field
+                        label="완료 기준"
+                        value={project.completionCriteria ?? ""}
+                        onChange={(completionCriteria) =>
+                          setProject({
+                            ...project,
+                            completionCriteria: completionCriteria || null,
+                          })
+                        }
+                      />
+                      {milestoneDrafts.map((m, index) => (
+                        <Card key={m.id}>
+                          <Field
+                            label={`마일스톤 ${index + 1}`}
+                            value={m.title}
+                            onChange={(title) =>
+                              setMilestoneDrafts((ms) =>
+                                ms.map((x) =>
+                                  x.id === m.id ? { ...x, title } : x,
+                                ),
+                              )
+                            }
+                          />
+                          <Row>
+                            <Button
+                              title="위로"
+                              disabled={index === 0}
+                              onPress={() =>
+                                setMilestoneDrafts((ms) => {
+                                  const next = [...ms];
+                                  [next[index - 1], next[index]] = [
+                                    next[index],
+                                    next[index - 1],
+                                  ];
+                                  return next;
+                                })
+                              }
+                            />
+                            <Button
+                              title="아래로"
+                              disabled={index === milestoneDrafts.length - 1}
+                              onPress={() =>
+                                setMilestoneDrafts((ms) => {
+                                  const next = [...ms];
+                                  [next[index + 1], next[index]] = [
+                                    next[index],
+                                    next[index + 1],
+                                  ];
+                                  return next;
+                                })
+                              }
+                            />
+                          </Row>
+                        </Card>
+                      ))}
+                      <Field
+                        label="추가할 마일스톤 (선택)"
+                        value={milestone}
+                        onChange={setMilestone}
+                      />
+                      <T>
+                        저장 후 다시 편집하면 마일스톤을 계속 추가할 수
+                        있습니다.
+                      </T>
+                      <Button
+                        title="프로젝트 저장"
+                        selected
+                        disabled={busy}
+                        onPress={() =>
+                          void mutate((s) => {
+                            saveProject(s, project);
+                            const p = project;
+                            milestoneDrafts.forEach((draft, index) => {
+                              if (!draft.title.trim())
+                                throw new Error("마일스톤 이름을 입력하세요.");
+                              const item = s.milestones.find(
+                                (m) => m.id === draft.id,
+                              );
+                              if (item) {
+                                item.title = draft.title.trim();
+                                item.sortOrder = index;
+                                item.updatedAt = new Date().toISOString();
+                              }
+                            });
+                            if (milestone.trim())
+                              s.milestones.push({
+                                ...stamp(),
+                                projectId: p.id,
+                                title: milestone.trim(),
+                                sortOrder: s.milestones.filter(
+                                  (m) => m.projectId === p.id,
+                                ).length,
+                                completedAt: null,
+                              });
+                          }).then((ok) => {
+                            if (ok) {
+                              setProject(null);
+                              setMilestone("");
+                            }
+                          })
+                        }
+                      />
+                    </>
+                  )}
+                  {log && (
+                    <>
+                      <DateField
+                        label="완료 날짜"
+                        value={completionTime.slice(0, 10)}
+                        onChange={(v) =>
+                          setCompletionTime(v + completionTime.slice(10))
+                        }
+                      />
+                      <TimeField
+                        label="완료 시각"
+                        value={completionTime.slice(11)}
+                        onChange={(v) =>
+                          setCompletionTime(completionTime.slice(0, 11) + v)
+                        }
+                      />
+                      <Field
+                        label="실제 소요 시간 (분)"
+                        numeric
+                        value={
+                          log.actualDurationMinutes === null
+                            ? ""
+                            : String(log.actualDurationMinutes)
+                        }
+                        onChange={(v) =>
+                          setLog({
                             ...log,
-                            completedAt,
-                            updatedAt: new Date().toISOString(),
-                          };
-                        }).then((ok) => {
-                          if (ok) setLog(null);
-                        })
-                      }
-                    />
-                  </>
-                )}
-              </View>
-            </ScrollView>
-          </SafeAreaView>
+                            actualDurationMinutes: v === "" ? null : Number(v),
+                          })
+                        }
+                      />
+                      <Field
+                        label="메모"
+                        value={log.note ?? ""}
+                        onChange={(note) =>
+                          setLog({ ...log, note: note || null })
+                        }
+                      />
+                      <Button
+                        title="기록 저장"
+                        selected
+                        disabled={busy}
+                        onPress={() =>
+                          void mutate((s) => {
+                            const completedAt =
+                              parseLocalDateTime(completionTime);
+                            if (
+                              log.actualDurationMinutes !== null &&
+                              (!Number.isFinite(log.actualDurationMinutes) ||
+                                log.actualDurationMinutes < 0)
+                            )
+                              throw new Error("소요 시간을 확인하세요.");
+                            const i = s.logs.findIndex(
+                              (l) => l.id === log.id && !l.deletedAt,
+                            );
+                            if (i < 0) throw new Error("기록이 없습니다.");
+                            s.logs[i] = {
+                              ...log,
+                              completedAt,
+                              updatedAt: new Date().toISOString(),
+                            };
+                          }).then((ok) => {
+                            if (ok) setLog(null);
+                          })
+                        }
+                      />
+                    </>
+                  )}
+                </View>
+              </ScrollView>
+            </SafeAreaView>
+          </EditorInsets>
         </Modal>
       </SafeAreaView>
     </Theme.Provider>

@@ -25,6 +25,7 @@ test("menu tiles remain readable and keyboard operable across viewport sizes", a
   for (const width of [320, 390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
+    await expect(page.getByTestId("bottom-navigation")).toHaveCount(0);
     const today = page.getByRole("button", { name: "오늘", exact: true });
     const routine = page.getByRole("button", { name: "루틴", exact: true });
     await expect(today).toHaveAttribute("aria-current", "page");
