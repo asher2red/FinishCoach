@@ -17,7 +17,10 @@ interface Store {
   busy: boolean;
   error: string;
   notice: string;
-  mutate: (fn: (s: State) => void) => Promise<boolean>;
+  mutate: (
+    fn: (s: State) => void,
+    options?: { syncNotifications?: boolean },
+  ) => Promise<boolean>;
   reload: () => Promise<void>;
   clearError: () => void;
 }
@@ -66,7 +69,10 @@ export function Provider({ children }: { children: React.ReactNode }) {
     }
   }, [sync]);
   const mutate = useCallback(
-    (fn: (s: State) => void): Promise<boolean> =>
+    (
+      fn: (s: State) => void,
+      options?: { syncNotifications?: boolean },
+    ): Promise<boolean> =>
       new Promise((resolve) => {
         queue.current = queue.current.then(async () => {
           if (!initialized.current) {
@@ -81,7 +87,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
             current.current = next;
             setState(next);
             setError("");
-            await sync(next);
+            if (options?.syncNotifications !== false) await sync(next);
             resolve(true);
           } catch (e) {
             console.error(

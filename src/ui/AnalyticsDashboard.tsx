@@ -32,7 +32,7 @@ function Bar({
             width: `${(value / Math.max(1, max)) * 100}%`,
             height: 12,
             borderRadius: 6,
-            backgroundColor: c.accent,
+            backgroundColor: c.tones.projects.ink,
           }}
         />
       </View>
@@ -71,7 +71,7 @@ export function AnalyticsDashboard({
           [data.activeDays + "일", "조회 주간의 실행일"],
         ].map(([value, label]) => (
           <View key={label} style={{ flex: 1, minWidth: 135 }}>
-            <Card>
+            <Card variant="metric" tone="projects">
               <T big>{value}</T>
               <T>{label}</T>
             </Card>
@@ -129,7 +129,7 @@ export function AnalyticsDashboard({
                   style={{
                     height: Math.max(2, (d.count / max) * 100),
                     width: 12,
-                    backgroundColor: c.accent,
+                    backgroundColor: c.tones.projects.ink,
                     borderRadius: 4,
                   }}
                 />

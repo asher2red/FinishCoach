@@ -1,3 +1,4 @@
+import { normalizeSettings, themeColors } from "../src/domain/settings";
 import { describe, it, expect } from "vitest";
 import { repository } from "../src/data/storage.web";
 import { emptyState, stamp } from "../src/domain/model";
@@ -40,10 +41,19 @@ describe("IndexedDB repository", () => {
     expect(await repository.load()).toEqual(s);
     for (const soundEnabled of [false, true])
       for (const vibrationEnabled of [false, true]) {
-        s.settings = { soundEnabled, vibrationEnabled };
+        s.settings = {
+          ...normalizeSettings(s.settings),
+          soundEnabled,
+          vibrationEnabled,
+        };
         await repository.commit(s);
         expect(await repository.load()).toEqual(s);
       }
+    for (const themeColor of themeColors) {
+      s.settings = { ...normalizeSettings(s.settings), themeColor };
+      await repository.commit(s);
+      expect((await repository.load())?.settings).toEqual(s.settings);
+    }
     s.projects[0].status = "completed" as "active";
     s.projects[0].completedAt = new Date().toISOString();
     s.milestones[0].completedAt = new Date().toISOString();

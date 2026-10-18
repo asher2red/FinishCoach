@@ -1,3 +1,4 @@
+import { normalizeSettings, themeColors } from "../src/domain/settings";
 import { it, expect, vi } from "vitest";
 import { DatabaseSync } from "node:sqlite";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -65,12 +66,23 @@ it("executes SQLite schema, CRUD, reopen persistence, unique constraints and rol
     expect(await repository.load()).toEqual(s);
     for (const soundEnabled of [false, true])
       for (const vibrationEnabled of [false, true]) {
-        s.settings = { soundEnabled, vibrationEnabled };
+        s.settings = {
+          ...normalizeSettings(s.settings),
+          soundEnabled,
+          vibrationEnabled,
+        };
         await repository.commit(s);
         harness.db.close();
         harness.db = new DatabaseSync(file);
         expect(await repository.load()).toEqual(s);
       }
+    for (const themeColor of themeColors) {
+      s.settings = { ...normalizeSettings(s.settings), themeColor };
+      await repository.commit(s);
+      harness.db.close();
+      harness.db = new DatabaseSync(file);
+      expect((await repository.load())?.settings).toEqual(s.settings);
+    }
     const invalid = structuredClone(s);
     invalid.occurrences.push({ ...invalid.occurrences[0], id: "duplicate" });
     await expect(repository.commit(invalid)).rejects.toThrow();

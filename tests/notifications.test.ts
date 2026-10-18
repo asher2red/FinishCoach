@@ -1,3 +1,4 @@
+import { normalizeSettings } from "../src/domain/settings";
 import { it, expect, vi, beforeEach } from "vitest";
 import {
   emptyState,
@@ -80,7 +81,11 @@ it("applies all four global sound and vibration combinations with bounded channe
   for (const soundEnabled of [false, true])
     for (const vibrationEnabled of [false, true]) {
       const s = emptyState();
-      s.settings = { soundEnabled, vibrationEnabled };
+      s.settings = {
+        ...normalizeSettings(s.settings),
+        soundEnabled,
+        vibrationEnabled,
+      };
       const r: Routine = {
         ...stamp(),
         title: "알림",
@@ -136,7 +141,11 @@ it("reconciles settings changes without duplicate pending notification identifie
   };
   saveRoutine(s, r);
   await reconcileNotifications(s);
-  s.settings = { soundEnabled: false, vibrationEnabled: false };
+  s.settings = {
+    ...normalizeSettings(s.settings),
+    soundEnabled: false,
+    vibrationEnabled: false,
+  };
   await Promise.all([reconcileNotifications(s), reconcileNotifications(s)]);
   expect(active.size).toBe(s.occurrences.length);
   expect([...active.values()].every((n) => n.content.sound === false)).toBe(
@@ -147,7 +156,11 @@ it("reconciles settings changes without duplicate pending notification identifie
 it("uses iOS sound options without pretending to control vibration", async () => {
   mocks.platform.OS = "ios";
   const s = emptyState();
-  s.settings = { soundEnabled: false, vibrationEnabled: true };
+  s.settings = {
+    ...normalizeSettings(s.settings),
+    soundEnabled: false,
+    vibrationEnabled: true,
+  };
   const r: Routine = {
     ...stamp(),
     title: "알림",

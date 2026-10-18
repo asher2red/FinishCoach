@@ -100,7 +100,7 @@ test("empty dark desktop layout and input validation", async ({ page }) => {
   await expect(page.getByText("아직 기록이 없어요").first()).toBeVisible();
   await expect(page.getByTestId("app-shell")).toHaveCSS(
     "background-color",
-    "rgb(17, 28, 23)",
+    "rgb(17, 23, 37)",
   );
   await page.screenshot({ path: "docs/desktop-dark.png", fullPage: true });
   await page.getByRole("button", { name: "＋ 활동 추가", exact: true }).click();

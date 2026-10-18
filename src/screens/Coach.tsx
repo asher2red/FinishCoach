@@ -23,7 +23,21 @@ import {
 import { saveRoutine, complete, undo, stats } from "../domain/engine";
 import { saveProject, setProjectStatus, projectDays } from "../domain/projects";
 import { router, useLocalSearchParams } from "expo-router";
-import { Theme, T, Card, Row, Button, Field, Empty } from "../ui/design";
+import {
+  Theme,
+  T,
+  Card,
+  CardTitle,
+  Row,
+  Button,
+  Field,
+  Empty,
+} from "../ui/design";
+import { normalizeSettings } from "../domain/settings";
+import { ThemeSettings } from "../ui/ThemeSettings";
+import { BrandMark } from "../ui/BrandMark";
+import { getPalette } from "../ui/tokens";
+import { ActionIconName } from "../ui/ActionIcon";
 import { DateField } from "../ui/DateField";
 import { TimeField } from "../ui/TimeField";
 import { AnalyticsDashboard } from "../ui/AnalyticsDashboard";
@@ -31,6 +45,14 @@ import { NotificationSettings } from "../ui/NotificationSettings";
 import { shiftPeriod } from "../domain/pickers";
 import { periodRange, Period } from "../domain/analytics";
 const pages = ["오늘", "루틴", "기록", "통계", "프로젝트", "설정"];
+const pageIcons: ActionIconName[] = [
+  "today",
+  "routines",
+  "history",
+  "statistics",
+  "projects",
+  "settings",
+];
 const activities = [
   "독서",
   "운동",
@@ -66,23 +88,8 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
     () => false,
   );
   const dark = hydrated && scheme === "dark";
-  const c = dark
-    ? {
-        bg: "#111C17",
-        card: "#1D2D24",
-        text: "#EAF4EC",
-        muted: "#AEC1B2",
-        accent: "#A1D5AE",
-        soft: "#304838",
-      }
-    : {
-        bg: "#F3F5F0",
-        card: "#FFFFFF",
-        text: "#172C25",
-        muted: "#62756A",
-        accent: "#28644C",
-        soft: "#E1ECE2",
-      };
+  const themeColor = normalizeSettings(s.settings).themeColor;
+  const c = useMemo(() => getPalette(themeColor, dark), [themeColor, dark]);
   const page = section;
   const setPage = (p: string) =>
     router.replace(
@@ -191,22 +198,19 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
         >
           <View style={{ width: "100%", maxWidth: 960, gap: 22 }}>
             <Row>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{ color: c.accent, fontSize: 23, fontWeight: "800" }}
-                >
-                  finish coach ↗
-                </Text>
-                <Text style={{ color: c.muted }}>
-                  작은 실행이 완성으로 이어지는 곳
-                </Text>
-              </View>
-              <Button title="알림 설정" onPress={() => setPage("설정")} />
+              <BrandMark />
+              <Button
+                title="알림 설정"
+                icon="bell"
+                onPress={() => setPage("설정")}
+              />
             </Row>
             <Row>
-              {pages.map((p) => (
+              {pages.map((p, index) => (
                 <Button
                   key={p}
+                  variant="tile"
+                  icon={pageIcons[index]}
                   title={p}
                   selected={page === p}
                   onPress={() => setPage(p)}
@@ -232,7 +236,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       : page === "통계"
                         ? "실행으로 확인하는 성장"
                         : page === "설정"
-                          ? "나에게 맞는 알림"
+                          ? "나에게 맞는 설정"
                           : "끝까지 가는 프로젝트"}
               </T>
             </View>
@@ -259,31 +263,28 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
               <>
                 {page === "오늘" && (
                   <>
-                    <View
-                      style={{
-                        backgroundColor: c.accent,
-                        padding: 26,
-                        borderRadius: 24,
-                        gap: 15,
-                      }}
-                    >
-                      <Text style={{ color: c.bg }}>TODAY’S FOCUS</Text>
+                    <Card variant="featured">
+                      <CardTitle icon="today">오늘의 핵심 행동</CardTitle>
                       <Text
-                        style={{ color: c.bg, fontSize: 38, fontWeight: "700" }}
+                        style={{
+                          color: c.tones.today.ink,
+                          fontSize: 38,
+                          fontWeight: "700",
+                        }}
                       >
                         {items.length
                           ? Math.round((done / items.length) * 100)
                           : 0}
                         %
                       </Text>
-                      <Text style={{ color: c.bg }}>
+                      <Text style={{ color: c.tones.today.ink }}>
                         {done}개 완료 ·{" "}
                         {items.filter((o) => o.status === "planned").length}개
                         남음 ·{" "}
                         {items.filter((o) => o.status === "skipped").length}개
                         건너뜀
                       </Text>
-                    </View>
+                    </Card>
                     <Row>
                       <View style={{ flex: 1 }}>
                         <T big>오늘의 활동</T>
@@ -298,7 +299,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         a.scheduledAt.localeCompare(b.scheduledAt),
                       )
                       .map((o) => (
-                        <Card key={o.id}>
+                        <Card key={o.id} tone="today">
                           <T>
                             {o.status === "completed"
                               ? "✓ "
@@ -401,7 +402,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                           (!r.endDate || r.endDate >= today),
                       )
                       .map((r) => (
-                        <Card key={r.id}>
+                        <Card key={r.id} tone="routines">
                           <T>
                             {r.title} · 주 {r.weeklyTarget}회 목표
                           </T>
@@ -436,8 +437,8 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                     {s.projects
                       .filter((p) => p.status === "active")
                       .map((p) => (
-                        <Card key={p.id}>
-                          <T>{p.title}</T>
+                        <Card key={p.id} tone="projects">
+                          <CardTitle icon="projects">{p.title}</CardTitle>
                           <T>
                             마일스톤{" "}
                             {
@@ -483,7 +484,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                     {s.routines
                       .filter((r) => Boolean(r.deletedAt) === archive)
                       .map((r) => (
-                        <Card key={r.id}>
+                        <Card key={r.id} tone="routines">
                           <T big>{r.title}</T>
                           <T>
                             {frequencies[r.frequencyType]}
@@ -629,7 +630,12 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                     )}
                   </>
                 )}
-                {page === "설정" && <NotificationSettings />}
+                {page === "설정" && (
+                  <>
+                    <ThemeSettings />
+                    <NotificationSettings />
+                  </>
+                )}
                 {page === "통계" && (
                   <>
                     <AnalyticsDashboard
@@ -712,8 +718,8 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                             addDays(weekStart(today), 7),
                       ).length;
                       return (
-                        <Card key={r.id}>
-                          <T>{r.title}</T>
+                        <Card key={r.id} tone="routines">
+                          <CardTitle icon="routines">{r.title}</CardTitle>
                           <T>
                             {r.frequencyType === "weekly"
                               ? `이번 주 ${weekly} / ${r.weeklyTarget}회 · ${Math.round((weekly / Math.max(1, r.weeklyTarget ?? 0)) * 100)}%`
@@ -726,8 +732,8 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                     {s.projects
                       .filter((p) => p.status === "completed" && p.completedAt)
                       .map((p) => (
-                        <Card key={p.id}>
-                          <T>{p.title}</T>
+                        <Card key={p.id} tone="projects">
+                          <CardTitle icon="projects">{p.title}</CardTitle>
                           <T>{projectDays(p)}일 소요</T>
                         </Card>
                       ))}
@@ -759,8 +765,10 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                     {s.projects
                       .filter((p) => !p.deletedAt)
                       .map((p) => (
-                        <Card key={p.id}>
-                          <T big>{p.title}</T>
+                        <Card key={p.id} tone="projects">
+                          <CardTitle icon="projects" big>
+                            {p.title}
+                          </CardTitle>
                           <T>
                             {
                               {

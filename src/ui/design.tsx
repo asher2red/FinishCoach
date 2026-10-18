@@ -1,13 +1,15 @@
 import React from "react";
-import { View, Text, Pressable, TextInput } from "react-native";
-export const Theme = React.createContext({
-  bg: "#F3F5F0",
-  card: "#FFFFFF",
-  text: "#172C25",
-  muted: "#62756A",
-  accent: "#28644C",
-  soft: "#E1ECE2",
-});
+import {
+  View,
+  Text,
+  Pressable,
+  TextInput,
+  Platform,
+  ViewStyle,
+} from "react-native";
+import { palettes, tokens, surfaceShadow, SurfaceTone } from "./tokens";
+import { ActionIcon, ActionIconName } from "./ActionIcon";
+export const Theme = React.createContext(palettes.light);
 export function T({
   children,
   big = false,
@@ -29,18 +31,73 @@ export function T({
     </Text>
   );
 }
-export function Card({ children }: { children: React.ReactNode }) {
+export function Card({
+  children,
+  variant = "content",
+  tone,
+}: {
+  children: React.ReactNode;
+  variant?: "content" | "metric" | "featured";
+  tone?: SurfaceTone;
+}) {
   const c = React.useContext(Theme);
+  const surface =
+    c.tones[tone ?? (variant === "featured" ? "today" : "history")];
   return (
     <View
-      style={{
-        padding: 20,
-        borderRadius: 22,
-        backgroundColor: c.card,
-        gap: 12,
-      }}
+      style={[
+        variant !== "metric" && surfaceShadow,
+        {
+          padding: tokens.space.card,
+          borderRadius: tokens.radius.card,
+          backgroundColor:
+            tone || variant === "featured" ? surface.surface : c.card,
+          borderWidth: 1,
+          borderColor:
+            tone || variant === "featured" ? surface.border : c.border,
+          gap: 12,
+        },
+      ]}
     >
       {children}
+    </View>
+  );
+}
+export function CardTitle({
+  icon,
+  children,
+  big = false,
+}: {
+  icon: ActionIconName;
+  children: React.ReactNode;
+  big?: boolean;
+}) {
+  const c = React.useContext(Theme);
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+      <View
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 19,
+          backgroundColor: c.tones[icon].glow,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActionIcon name={icon} size={30} />
+      </View>
+      <Text
+        style={{
+          flex: 1,
+          color: c.text,
+          fontSize: big ? 22 : 16,
+          lineHeight: big ? 30 : 24,
+          fontWeight: "700",
+        }}
+      >
+        {children}
+      </Text>
     </View>
   );
 }
@@ -64,32 +121,135 @@ export function Button({
   selected = false,
   disabled = false,
   accessibilityLabel,
+  variant = "action",
+  icon,
+  description,
 }: {
   title: string;
   onPress: () => void;
   selected?: boolean;
   disabled?: boolean;
   accessibilityLabel?: string;
+  variant?: "action" | "tile";
+  icon?: ActionIconName;
+  description?: string;
 }) {
   const c = React.useContext(Theme);
+  const [hovered, setHovered] = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
+  const tile = variant === "tile";
+  const tone = c.tones[icon ?? "today"];
+  const foreground = tile ? c.text : selected ? c.onAccent : c.text;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityHint={description}
       accessibilityState={{ disabled, selected }}
+      {...(Platform.OS === "web" && tile
+        ? { "aria-current": selected ? "page" : undefined }
+        : {})}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => ({
-        padding: 13,
-        minHeight: 48,
-        borderRadius: 13,
-        backgroundColor: selected ? c.accent : c.soft,
-        opacity: disabled ? 0.45 : pressed ? 0.65 : 1,
-      })}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={({ pressed }) => [
+        tile && !disabled && surfaceShadow,
+        {
+          paddingVertical: tile ? 16 : 12,
+          paddingHorizontal: tokens.space.control,
+          minHeight: tile ? 112 : 48,
+          borderRadius: tile ? tokens.radius.tile : tokens.radius.button,
+          borderWidth: 1,
+          borderColor: tile
+            ? selected || (hovered && !disabled)
+              ? tone.ink
+              : tone.border
+            : selected
+              ? c.accent
+              : hovered && !disabled
+                ? c.accent
+                : c.border,
+          backgroundColor: tile
+            ? pressed || (hovered && !disabled)
+              ? tone.glow
+              : tone.surface
+            : selected
+              ? c.accent
+              : pressed || (hovered && !disabled)
+                ? c.hover
+                : c.soft,
+          opacity: disabled ? 0.45 : pressed ? 0.8 : 1,
+          gap: tile ? 10 : 8,
+          flexDirection: tile ? "column" : "row",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 1,
+          ...(tile
+            ? { flexBasis: 84, flexGrow: 1, maxWidth: 156, minWidth: 0 }
+            : {}),
+          ...(Platform.OS === "web"
+            ? ({
+                cursor: disabled ? "not-allowed" : "pointer",
+                outlineStyle: focused ? "solid" : "none",
+                outlineWidth: 3,
+                outlineOffset: 3,
+                outlineColor: c.accent,
+              } as ViewStyle)
+            : {}),
+        },
+      ]}
     >
-      <Text style={{ color: selected ? c.bg : c.text, fontWeight: "600" }}>
-        {title}
-      </Text>
+      {icon && (
+        <View
+          pointerEvents="none"
+          style={
+            tile
+              ? {
+                  padding: 6,
+                  borderRadius: tokens.radius.icon,
+                  backgroundColor: tone.glow,
+                }
+              : undefined
+          }
+        >
+          <ActionIcon
+            name={icon}
+            size={tile ? tokens.icon.tile : tokens.icon.action}
+          />
+        </View>
+      )}
+      <View
+        pointerEvents="none"
+        style={{ flexShrink: 1, alignItems: "center", gap: 4 }}
+      >
+        <Text
+          style={{
+            color: foreground,
+            fontSize: 14,
+            lineHeight: 21,
+            fontWeight: selected ? "800" : "600",
+            textAlign: "center",
+            flexShrink: 1,
+          }}
+        >
+          {title}
+        </Text>
+        {description && (
+          <Text
+            style={{
+              color: tile ? c.muted : selected ? c.onAccent : c.muted,
+              fontSize: 12,
+              lineHeight: 18,
+              textAlign: "center",
+            }}
+          >
+            {description}
+          </Text>
+        )}
+      </View>
     </Pressable>
   );
 }
