@@ -1,0 +1,70 @@
+import React, { useContext } from "react";
+import { Modal, View, ScrollView, Platform, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Theme, T, Button, Row } from "./design";
+export function PickerPanel({
+  title,
+  onCancel,
+  onConfirm,
+  children,
+  confirmDisabled = false,
+}: {
+  title: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  children: React.ReactNode;
+  confirmDisabled?: boolean;
+}) {
+  const c = useContext(Theme);
+  return (
+    <Modal
+      transparent
+      animationType={Platform.OS === "web" ? "none" : "fade"}
+      onRequestClose={onCancel}
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#0008",
+          justifyContent: Platform.OS === "web" ? "center" : "flex-end",
+          alignItems: "center",
+        }}
+      >
+        <Pressable
+          accessibilityLabel="선택기 배경 닫기"
+          onPress={onCancel}
+          style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }}
+        />
+        <SafeAreaView
+          testID="picker-panel"
+          style={{
+            width: "100%",
+            maxWidth: 480,
+            maxHeight: "95%",
+            backgroundColor: c.bg,
+            borderRadius: 24,
+          }}
+        >
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ padding: 16, gap: 14 }}
+          >
+            <T big>{title}</T>
+            {children}
+            <Row>
+              <View style={{ flex: 1 }}>
+                <Button title="취소" onPress={onCancel} />
+              </View>
+              <Button
+                title="확인"
+                disabled={confirmDisabled}
+                selected
+                onPress={onConfirm}
+              />
+            </Row>
+          </ScrollView>
+        </SafeAreaView>
+      </View>
+    </Modal>
+  );
+}

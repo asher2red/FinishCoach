@@ -1,10 +1,8 @@
-import React, { useState, useSyncExternalStore } from "react";
+import React, { useState, useSyncExternalStore, useMemo } from "react";
 import {
   View,
   Text,
   ScrollView,
-  Pressable,
-  TextInput,
   Modal,
   useColorScheme,
   Platform,
@@ -22,11 +20,17 @@ import {
   weekStart,
   addDays,
 } from "../domain/model";
-import { saveRoutine, complete, undo, stats, generate } from "../domain/engine";
+import { saveRoutine, complete, undo, stats } from "../domain/engine";
 import { saveProject, setProjectStatus, projectDays } from "../domain/projects";
-import { requestPermission } from "../services/notifications";
-import { router } from "expo-router";
-const pages = ["오늘", "루틴", "기록", "통계", "프로젝트"];
+import { router, useLocalSearchParams } from "expo-router";
+import { Theme, T, Card, Row, Button, Field, Empty } from "../ui/design";
+import { DateField } from "../ui/DateField";
+import { TimeField } from "../ui/TimeField";
+import { AnalyticsDashboard } from "../ui/AnalyticsDashboard";
+import { NotificationSettings } from "../ui/NotificationSettings";
+import { shiftPeriod } from "../domain/pickers";
+import { periodRange, Period } from "../domain/analytics";
+const pages = ["오늘", "루틴", "기록", "통계", "프로젝트", "설정"];
 const activities = [
   "독서",
   "운동",
@@ -43,138 +47,6 @@ const frequencies = {
   weekdays: "특정 요일",
   once: "한 번",
 };
-const Theme = React.createContext({
-  bg: "#F3F5F0",
-  card: "#FFFFFF",
-  text: "#172C25",
-  muted: "#62756A",
-  accent: "#28644C",
-  soft: "#E1ECE2",
-});
-function T({
-  children,
-  big = false,
-}: {
-  children: React.ReactNode;
-  big?: boolean;
-}) {
-  const c = React.useContext(Theme);
-  return (
-    <Text
-      style={{
-        color: c.text,
-        fontSize: big ? 28 : 16,
-        lineHeight: big ? 38 : 25,
-        fontWeight: big ? "700" : "400",
-      }}
-    >
-      {children}
-    </Text>
-  );
-}
-function Card({ children }: { children: React.ReactNode }) {
-  const c = React.useContext(Theme);
-  return (
-    <View
-      style={{
-        padding: 20,
-        borderRadius: 22,
-        backgroundColor: c.card,
-        gap: 12,
-      }}
-    >
-      {children}
-    </View>
-  );
-}
-function Row({ children }: { children: React.ReactNode }) {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        flexWrap: "wrap",
-        gap: 8,
-        alignItems: "center",
-      }}
-    >
-      {children}
-    </View>
-  );
-}
-function Button({
-  title,
-  onPress,
-  selected = false,
-  disabled = false,
-}: {
-  title: string;
-  onPress: () => void;
-  selected?: boolean;
-  disabled?: boolean;
-}) {
-  const c = React.useContext(Theme);
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled, selected }}
-      disabled={disabled}
-      onPress={onPress}
-      style={({ pressed }) => ({
-        padding: 13,
-        minHeight: 48,
-        borderRadius: 13,
-        backgroundColor: selected ? c.accent : c.soft,
-        opacity: disabled ? 0.45 : pressed ? 0.65 : 1,
-      })}
-    >
-      <Text style={{ color: selected ? c.bg : c.text, fontWeight: "600" }}>
-        {title}
-      </Text>
-    </Pressable>
-  );
-}
-function Field({
-  label,
-  value,
-  onChange,
-  numeric = false,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  numeric?: boolean;
-}) {
-  const c = React.useContext(Theme);
-  return (
-    <View style={{ gap: 6 }}>
-      <T>{label}</T>
-      <TextInput
-        accessibilityLabel={label}
-        value={value}
-        onChangeText={onChange}
-        keyboardType={numeric ? "numeric" : "default"}
-        style={{
-          padding: 14,
-          fontSize: 16,
-          color: c.text,
-          backgroundColor: c.card,
-          borderWidth: 1,
-          borderColor: c.soft,
-          borderRadius: 12,
-          minHeight: 48,
-        }}
-      />
-    </View>
-  );
-}
-function Empty({ text }: { text: string }) {
-  return (
-    <Card>
-      <T>아직 기록이 없어요</T>
-      <T>{text}</T>
-    </Card>
-  );
-}
 export default function Coach({ section = "오늘" }: { section?: string }) {
   const {
     state: s,
@@ -214,9 +86,16 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
   const page = section;
   const setPage = (p: string) =>
     router.replace(
-      (["/", "/routines", "/history", "/statistics", "/projects"] as const)[
-        pages.indexOf(p)
-      ],
+      (
+        [
+          "/",
+          "/routines",
+          "/history",
+          "/statistics",
+          "/projects",
+          "/settings",
+        ] as const
+      )[pages.indexOf(p)],
     );
   const [routine, setRoutine] = useState<Routine | null>(null),
     [project, setProject] = useState<Project | null>(null),
@@ -236,12 +115,20 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
       );
     }
   };
+  const params = useLocalSearchParams<{ date?: string }>();
+  const initialDate =
+    params.date &&
+    /^\d{4}-\d{2}-\d{2}$/.test(params.date) &&
+    !Number.isNaN(new Date(params.date + "T12:00:00").getTime()) &&
+    localDate(new Date(params.date + "T12:00:00")) === params.date
+      ? params.date
+      : localDate();
   const [period, setPeriod] = useState("일"),
-    [date, setDate] = useState(localDate()),
+    [date, setDate] = useState(initialDate),
     [filter, setFilter] = useState("전체"),
     [archive, setArchive] = useState(false);
   const today = localDate(),
-    n = stats(s, today),
+    n = useMemo(() => stats(s, today), [s, today]),
     items = s.occurrences.filter(
       (o) =>
         o.localDate === today &&
@@ -270,25 +157,20 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
       endDate: null,
       isActive: true,
     });
-  const validDate =
-    /^\d{4}-\d{2}-\d{2}$/.test(date) &&
-    !Number.isNaN(new Date(date + "T12:00:00").getTime());
-  const logs = s.logs
-    .filter(
-      (l) =>
-        !l.deletedAt &&
-        (filter === "전체" || l.routineId === filter) &&
-        validDate,
-    )
-    .filter((l) => {
-      const d = localDate(new Date(l.completedAt));
-      return period === "일"
-        ? d === date
-        : period === "주"
-          ? d >= weekStart(date) && d < addDays(weekStart(date), 7)
-          : d.startsWith(date.slice(0, 7));
-    })
-    .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  const [visibleLogs, setVisibleLogs] = useState(50);
+  const validDate = true;
+  const logs = useMemo(() => {
+    const { from, to } = periodRange(date, period as Period);
+    return s.logs
+      .filter(
+        (l) => !l.deletedAt && (filter === "전체" || l.routineId === filter),
+      )
+      .filter((l) => {
+        const day = localDate(new Date(l.completedAt));
+        return day >= from && day < to;
+      })
+      .sort((a, b) => b.completedAt.localeCompare(a.completedAt));
+  }, [s.logs, date, period, filter]);
   const close = () => {
     setRoutine(null);
     setProject(null);
@@ -319,17 +201,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                   작은 실행이 완성으로 이어지는 곳
                 </Text>
               </View>
-              <Button
-                title="알림 설정"
-                onPress={() =>
-                  void requestPermission()
-                    .then((message) => {
-                      setMessage(message);
-                      void mutate((s) => generate(s));
-                    })
-                    .catch(() => setMessage("알림 설정을 열 수 없습니다."))
-                }
-              />
+              <Button title="알림 설정" onPress={() => setPage("설정")} />
             </Row>
             <Row>
               {pages.map((p) => (
@@ -359,7 +231,9 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       ? "쌓여가는 나의 실행"
                       : page === "통계"
                         ? "실행으로 확인하는 성장"
-                        : "끝까지 가는 프로젝트"}
+                        : page === "설정"
+                          ? "나에게 맞는 알림"
+                          : "끝까지 가는 프로젝트"}
               </T>
             </View>
             {!!error && (
@@ -666,7 +540,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                 {page === "기록" && (
                   <>
                     <Row>
-                      {["일", "주", "월"].map((p) => (
+                      {["일", "주", "월", "년"].map((p) => (
                         <Button
                           key={p}
                           title={p}
@@ -675,36 +549,22 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         />
                       ))}
                     </Row>
-                    <Field
-                      label="조회 기준일 (YYYY-MM-DD)"
+                    <DateField
+                      label="조회 기준일"
                       value={date}
-                      onChange={setDate}
+                      onChange={(v) => setDate(v!)}
                     />
                     <Row>
                       <Button
                         title="이전"
                         disabled={!validDate}
-                        onPress={() =>
-                          setDate(
-                            addDays(
-                              date,
-                              period === "일" ? -1 : period === "주" ? -7 : -30,
-                            ),
-                          )
-                        }
+                        onPress={() => setDate(shiftPeriod(date, period, -1))}
                       />
                       <Button title="오늘" onPress={() => setDate(today)} />
                       <Button
                         title="다음"
                         disabled={!validDate}
-                        onPress={() =>
-                          setDate(
-                            addDays(
-                              date,
-                              period === "일" ? 1 : period === "주" ? 7 : 30,
-                            ),
-                          )
-                        }
+                        onPress={() => setDate(shiftPeriod(date, period, 1))}
                       />
                     </Row>
                     <Row>
@@ -722,31 +582,68 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         />
                       ))}
                     </Row>
+                    <AnalyticsDashboard
+                      state={s}
+                      date={date}
+                      period={period as Period}
+                      filter={filter}
+                      onDay={(d) => {
+                        setDate(d);
+                        setPeriod("일");
+                      }}
+                    />
+                    <T big>날짜별 실행 기록</T>
                     {!logs.length && (
                       <Empty text="이 기간에 완료 기록이 없습니다." />
                     )}
-                    {logs.map((l) => (
-                      <Card key={l.id}>
-                        <T>{title(l.routineId)}</T>
-                        <T>
-                          {new Date(l.completedAt).toLocaleString("ko-KR")} ·{" "}
-                          {l.actualDurationMinutes ?? "미입력"}분
-                        </T>
-                        {!!l.note && <T>{l.note}</T>}
-                        <Row>
-                          <Button title="수정" onPress={() => openLog(l)} />
-                          <Button
-                            title="완료 취소"
-                            disabled={busy}
-                            onPress={() => void mutate((s) => undo(s, l.id))}
-                          />
-                        </Row>
-                      </Card>
+                    {logs.slice(0, visibleLogs).map((l, index) => (
+                      <View key={l.id} style={{ gap: 10 }}>
+                        {(index === 0 ||
+                          localDate(new Date(logs[index - 1].completedAt)) !==
+                            localDate(new Date(l.completedAt))) && (
+                          <T big>{localDate(new Date(l.completedAt))}</T>
+                        )}
+                        <Card>
+                          <T>{title(l.routineId)}</T>
+                          <T>
+                            {new Date(l.completedAt).toLocaleString("ko-KR")} ·{" "}
+                            {l.actualDurationMinutes ?? "미입력"}분
+                          </T>
+                          {!!l.note && <T>{l.note}</T>}
+                          <Row>
+                            <Button title="수정" onPress={() => openLog(l)} />
+                            <Button
+                              title="완료 취소"
+                              disabled={busy}
+                              onPress={() => void mutate((s) => undo(s, l.id))}
+                            />
+                          </Row>
+                        </Card>
+                      </View>
                     ))}
+                    {logs.length > visibleLogs && (
+                      <Button
+                        title={`기록 더 보기 (${visibleLogs} / ${logs.length})`}
+                        onPress={() => setVisibleLogs((n) => n + 50)}
+                      />
+                    )}
                   </>
                 )}
+                {page === "설정" && <NotificationSettings />}
                 {page === "통계" && (
                   <>
+                    <AnalyticsDashboard
+                      state={s}
+                      date={today}
+                      period="년"
+                      filter="전체"
+                      onDay={(d) => {
+                        router.replace({
+                          pathname: "/history",
+                          params: { date: d },
+                        });
+                      }}
+                    />
                     {!s.logs.some((l) => !l.deletedAt) && (
                       <Empty text="첫 활동을 완료하면 실제 데이터로 통계를 확인할 수 있어요." />
                     )}
@@ -1061,12 +958,17 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                     </Row>
                     {routine.frequencyType === "weekly" && (
                       <>
-                        <Field
-                          label="주간 목표 (1~7회)"
-                          numeric
-                          value={String(routine.weeklyTarget ?? 3)}
-                          onChange={(v) => change({ weeklyTarget: Number(v) })}
-                        />
+                        <T>주간 목표 횟수</T>
+                        <Row>
+                          {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                            <Button
+                              key={n}
+                              title={`${n}회`}
+                              selected={routine.weeklyTarget === n}
+                              onPress={() => change({ weeklyTarget: n })}
+                            />
+                          ))}
+                        </Row>
                         <T>주간 목표는 특정 날짜에 강제 배정하지 않습니다.</T>
                       </>
                     )}
@@ -1095,6 +997,18 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       </Row>
                     )}
                     {!["취침", "기상"].includes(routine.category) && (
+                      <Row>
+                        {[10, 15, 20, 30, 45, 60].map((n) => (
+                          <Button
+                            key={n}
+                            title={`${n}분`}
+                            selected={routine.durationMinutes === n}
+                            onPress={() => change({ durationMinutes: n })}
+                          />
+                        ))}
+                      </Row>
+                    )}
+                    {!["취침", "기상"].includes(routine.category) && (
                       <Field
                         label="소요 시간 (분, 선택)"
                         numeric
@@ -1110,28 +1024,29 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         }
                       />
                     )}
-                    <Field
+                    <DateField
                       label={
-                        routine.frequencyType === "once"
-                          ? "실행일 (YYYY-MM-DD)"
-                          : "시작일 (YYYY-MM-DD)"
+                        routine.frequencyType === "once" ? "실행일" : "시작일"
                       }
                       value={routine.startDate}
-                      onChange={(startDate) => change({ startDate })}
+                      onChange={(v) => change({ startDate: v! })}
                     />
                     {routine.frequencyType !== "once" && (
-                      <Field
-                        label="종료일 (선택, YYYY-MM-DD)"
-                        value={routine.endDate ?? ""}
-                        onChange={(v) => change({ endDate: v || null })}
+                      <DateField
+                        label="종료일 (선택)"
+                        value={routine.endDate}
+                        optional
+                        min={routine.startDate}
+                        onChange={(endDate) => change({ endDate })}
                       />
                     )}
                     {routine.frequencyType !== "weekly" && (
                       <>
-                        <Field
-                          label="알림 및 목표 시각 (선택, HH:mm)"
-                          value={routine.reminderTime ?? ""}
-                          onChange={(v) => change({ reminderTime: v || null })}
+                        <TimeField
+                          label="알림 및 목표 시각"
+                          value={routine.reminderTime}
+                          optional
+                          onChange={(reminderTime) => change({ reminderTime })}
                         />
                         <T>
                           비워 두면 알림 없이 오전 9시 일정으로 표시합니다. 상단
@@ -1170,21 +1085,20 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         })
                       }
                     />
-                    <Field
-                      label="시작일 (YYYY-MM-DD)"
+                    <DateField
+                      label="프로젝트 시작일"
                       value={project.startedAt}
-                      onChange={(startedAt) =>
-                        setProject({ ...project, startedAt })
+                      onChange={(v) =>
+                        setProject({ ...project, startedAt: v! })
                       }
                     />
-                    <Field
-                      label="목표일 (선택, YYYY-MM-DD)"
-                      value={project.targetDate ?? ""}
+                    <DateField
+                      label="프로젝트 목표일 (선택)"
+                      value={project.targetDate}
+                      optional
+                      min={project.startedAt}
                       onChange={(targetDate) =>
-                        setProject({
-                          ...project,
-                          targetDate: targetDate || null,
-                        })
+                        setProject({ ...project, targetDate })
                       }
                     />
                     <Field
@@ -1292,10 +1206,19 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                 )}
                 {log && (
                   <>
-                    <Field
-                      label="완료 날짜 및 시각 (YYYY-MM-DD HH:mm)"
-                      value={completionTime}
-                      onChange={setCompletionTime}
+                    <DateField
+                      label="완료 날짜"
+                      value={completionTime.slice(0, 10)}
+                      onChange={(v) =>
+                        setCompletionTime(v + completionTime.slice(10))
+                      }
+                    />
+                    <TimeField
+                      label="완료 시각"
+                      value={completionTime.slice(11)}
+                      onChange={(v) =>
+                        setCompletionTime(completionTime.slice(0, 11) + v)
+                      }
                     />
                     <Field
                       label="실제 소요 시간 (분)"

@@ -1,4 +1,5 @@
 import { randomUUID } from "expo-crypto";
+import { AppSettings, defaultSettings } from "./settings";
 export type Frequency = "daily" | "weekdays" | "weekly" | "once";
 export interface Entity {
   id: string;
@@ -52,6 +53,7 @@ export interface ProjectMilestone extends Entity {
 }
 export interface State {
   version: 1;
+  settings?: AppSettings;
   routines: Routine[];
   occurrences: PlannedOccurrence[];
   logs: CompletionLog[];
@@ -60,6 +62,7 @@ export interface State {
 }
 export const emptyState = (): State => ({
   version: 1,
+  settings: defaultSettings(),
   routines: [],
   occurrences: [],
   logs: [],

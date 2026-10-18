@@ -111,7 +111,7 @@ export function complete(
     routineId,
     plannedOccurrenceId: occurrenceId,
     completedAt: new Date().toISOString(),
-    actualDurationMinutes: r.durationMinutes,
+    actualDurationMinutes: null,
     note: null,
   };
   s.logs.push(log);

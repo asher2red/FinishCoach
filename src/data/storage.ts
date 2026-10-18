@@ -1,10 +1,12 @@
 import * as SQLite from "expo-sqlite";
 import { Repository } from "./repository";
 import { emptyState, State } from "../domain/model";
+import { normalizeSettings } from "../domain/settings";
 export const schema = `
 PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS metadata (id INTEGER PRIMARY KEY CHECK(id=1), version INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS app_settings (id INTEGER PRIMARY KEY CHECK(id=1), payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS routines (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS occurrences (id TEXT PRIMARY KEY, routine_id TEXT NOT NULL REFERENCES routines(id), scheduled_at TEXT NOT NULL, payload TEXT NOT NULL, UNIQUE(routine_id, scheduled_at));
@@ -39,6 +41,12 @@ export const repository: Repository = {
     if (version.version !== 1)
       throw new Error("지원되지 않는 데이터 버전입니다.");
     const s = emptyState();
+    const settings = await db.getFirstAsync<{ payload: string }>(
+      "SELECT payload FROM app_settings WHERE id=1",
+    );
+    s.settings = normalizeSettings(
+      settings ? JSON.parse(settings.payload) : null,
+    );
     for (const key of [
       "routines",
       "projects",
@@ -105,6 +113,10 @@ export const repository: Repository = {
       await tx.runAsync(
         "INSERT INTO metadata VALUES (1,?) ON CONFLICT(id) DO UPDATE SET version=excluded.version",
         s.version,
+      );
+      await tx.runAsync(
+        "INSERT INTO app_settings VALUES (1,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload",
+        JSON.stringify(normalizeSettings(s.settings)),
       );
     });
   },

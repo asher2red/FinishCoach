@@ -21,16 +21,25 @@ test("routine completion persists; history, statistics, weekly goal and project 
   await page.getByRole("button", { name: "수정", exact: true }).click();
   await page.getByLabel("실제 소요 시간 (분)").fill("35");
   await page.getByLabel("메모").fill("첫 실행");
-  const timeInput = page.getByLabel("완료 날짜 및 시각 (YYYY-MM-DD HH:mm)");
-  const changedTime = (await timeInput.inputValue()).slice(0, 10) + " 13:45";
-  await timeInput.fill(changedTime);
+  await page
+    .getByRole("button", { name: "완료 시각 선택", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "오후 8시 15분", exact: true })
+    .click();
+  await page.getByRole("button", { name: "확인", exact: true }).click();
   await page.getByRole("button", { name: "기록 저장", exact: true }).click();
   await expect(page.getByText("첫 실행", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "수정", exact: true }).click();
-  await expect(timeInput).toHaveValue(changedTime);
+  await expect(
+    page.getByRole("button", { name: "완료 시각 선택", exact: true }),
+  ).toHaveText("오후 8시 15분");
   await page.getByRole("button", { name: "닫기", exact: true }).last().click();
   await page.getByRole("button", { name: "통계", exact: true }).click();
-  await expect(page.getByText("35분", { exact: true })).toBeVisible();
+  await expect(page.getByText("35분", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "오늘", exact: true }),
+  ).toHaveCount(1);
   await page.getByRole("button", { name: "오늘", exact: true }).click();
   await page.getByRole("button", { name: "완료 취소", exact: true }).click();
   await expect(page.getByText("0%", { exact: true })).toBeVisible();
@@ -41,6 +50,9 @@ test("routine completion persists; history, statistics, weekly goal and project 
   await page.getByLabel("활동 이름 (직접 추가 가능)").fill("자유 운동");
   await page.getByRole("button", { name: "주 N회", exact: true }).click();
   await page.getByRole("button", { name: "루틴 저장", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "오늘", exact: true }),
+  ).toHaveCount(1);
   await page.getByRole("button", { name: "오늘", exact: true }).click();
   await expect(
     page.getByText("자유 운동 · 주 3회 목표", { exact: true }),
@@ -71,6 +83,9 @@ test("routine completion persists; history, statistics, weekly goal and project 
   await expect(
     page.getByRole("button", { name: "✓ 핵심 기능", exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "오늘", exact: true }),
+  ).toHaveCount(1);
   await page.getByRole("button", { name: "오늘", exact: true }).click();
   await expect(page.getByText("오늘, 하나씩 끝내볼까요?")).toBeVisible();
   await expect(page.getByText("아침 독서", { exact: true })).toBeVisible();

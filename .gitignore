@@ -49,3 +49,10 @@ example
 
 /artifacts/*.apk
 /artifacts/*.aab
+
+/artifacts/*.ipa
+/artifacts/*.tar.gz
+/artifacts/*.app/
+/artifacts/ios-simulator/
+/credentials.json
+/credentials/

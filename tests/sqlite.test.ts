@@ -61,6 +61,16 @@ it("executes SQLite schema, CRUD, reopen persistence, unique constraints and rol
     harness.db.close();
     harness.db = new DatabaseSync(file);
     expect(await repository.load()).toEqual(s);
+    harness.db.exec("DELETE FROM app_settings");
+    expect(await repository.load()).toEqual(s);
+    for (const soundEnabled of [false, true])
+      for (const vibrationEnabled of [false, true]) {
+        s.settings = { soundEnabled, vibrationEnabled };
+        await repository.commit(s);
+        harness.db.close();
+        harness.db = new DatabaseSync(file);
+        expect(await repository.load()).toEqual(s);
+      }
     const invalid = structuredClone(s);
     invalid.occurrences.push({ ...invalid.occurrences[0], id: "duplicate" });
     await expect(repository.commit(invalid)).rejects.toThrow();

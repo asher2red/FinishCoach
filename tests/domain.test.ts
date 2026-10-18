@@ -134,6 +134,9 @@ describe("completion and statistics", () => {
     complete(s, r.id, o.id);
     expect(s.logs).toHaveLength(1);
     expect(o.completedLogId).toBe(s.logs[0].id);
+    expect(s.logs[0].actualDurationMinutes).toBeNull();
+    expect(stats(s).minutes).toBe(0);
+    s.logs[0].actualDurationMinutes = 20;
     expect(stats(s).minutes).toBe(20);
     undo(s, s.logs[0].id);
     expect(o.status).toBe("planned");
@@ -163,6 +166,7 @@ describe("completion and statistics", () => {
     const r = routine();
     saveRoutine(s, r);
     complete(s, r.id, s.occurrences[0].id);
+    s.logs[0].actualDurationMinutes = 20;
     expect(stats(s)).toMatchObject({
       weeklyDone: 1,
       month: 1,

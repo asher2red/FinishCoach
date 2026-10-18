@@ -52,7 +52,13 @@
     "test:e2e": "playwright test",
     "preview:web": "node scripts/serve-web.mjs",
     "format": "prettier --write src tests e2e docs *.json *.ts *.js",
-    "build:native": "expo export --platform android --platform ios --output-dir dist-native"
+    "build:native": "expo export --platform android --platform ios --output-dir dist-native",
+    "doctor:local": "node scripts/local-build.mjs doctor",
+    "build:android:local": "node scripts/local-build.mjs android",
+    "build:ios:local": "node scripts/local-build.mjs ios",
+    "build:ios:device:local": "node scripts/local-build.mjs ios-device",
+    "run:android:local": "node scripts/local-build.mjs run-android",
+    "run:ios:local": "node scripts/local-build.mjs run-ios"
   },
   "private": true
 }

@@ -1,5 +1,6 @@
 import { State, emptyState } from "../domain/model";
 import { Repository } from "./repository";
+import { normalizeSettings } from "../domain/settings";
 const entities = [
   "routines",
   "occurrences",
@@ -47,6 +48,10 @@ export const repository: Repository = {
       meta.onsuccess = () => {
         version = meta.result;
       };
+      const settings = tx.objectStore("metadata").get("settings");
+      settings.onsuccess = () => {
+        s.settings = normalizeSettings(settings.result);
+      };
       for (const key of entities) {
         const req = tx.objectStore(key).getAll();
         req.onsuccess = () => {
@@ -76,6 +81,7 @@ export const repository: Repository = {
         for (const row of s[key]) store.put(row);
       }
       tx.objectStore("metadata").put(s.version, "version");
+      tx.objectStore("metadata").put(normalizeSettings(s.settings), "settings");
       tx.oncomplete = () => {
         db.close();
         resolve();

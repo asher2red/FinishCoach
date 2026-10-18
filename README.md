@@ -20,7 +20,7 @@ npx expo run:android
 npx expo run:ios
 ```
 
-Android SDK/JDK와 Android Studio, iOS는 macOS/Xcode/CocoaPods 및 필요한 서명 설정이 별도로 필요합니다. 위 명령은 네이티브 프로젝트 생성과 빌드를 수행합니다. Android 내부 배포용 서명 APK는 EAS에서 생성했습니다. Play Store용 AAB와 iOS IPA는 생성하지 않았습니다.
+Android는 SDK/JDK, iOS는 macOS/Xcode/CocoaPods 및 필요한 서명 설정이 별도로 필요합니다. 위 명령은 네이티브 프로젝트 생성과 빌드를 수행합니다. 최신 Android APK와 iOS 시뮬레이터 앱은 이 맥북에서 로컬 빌드를 완료했습니다. Play Store용 AAB와 iOS 실기기 IPA는 생성하지 않았습니다.
 
 웹 정적 배포 산출물과 로컬 미리보기:
 
@@ -29,6 +29,17 @@ npm run build:web
 npm run preview:web
 # http://127.0.0.1:8081
 ```
+
+## Android·iOS 로컬 빌드
+
+```bash
+npm run doctor:local -- android
+npm run build:android:local
+npm run doctor:local -- ios
+npm run build:ios:local
+```
+
+컴파일은 맥북에서 수행하며, Android는 설치용 APK, iOS는 시뮬레이터용 앱을 생성합니다. 실기기 IPA는 `npm run build:ios:device:local`을 사용하며 Apple 서명이 별도로 필요합니다. [환경 설치·산출물·네트워크 사용 범위](docs/LOCAL-BUILD.md)를 확인하세요.
 
 ## Android 설치용 APK 빌드
 
@@ -40,6 +51,14 @@ npx eas-cli@latest build --platform android --profile preview
 ```
 
 첫 빌드에서는 Expo 프로젝트 연결 및 Android 서명 키 생성 안내를 따라 진행합니다. 빌드가 성공하면 EAS가 제공하는 APK 다운로드 링크를 안드로이드 폰에서 열어 설치합니다. 이 설정은 Play Store 게시를 수행하지 않습니다. 2026-10-17 EAS 빌드가 성공했습니다. [APK 다운로드](https://expo.dev/artifacts/eas/bIW4XdjvWRE9c5lBIucebzqDR5TCDftNF68gxfuxWBY.apk) · [빌드 결과](https://expo.dev/accounts/asher2red/projects/finishCoach/builds/04171dbc-591a-4901-9c6a-0a1c3bbe7288). 로컬 사본은 `artifacts/finish-coach-1.0.0.apk`에 보관합니다. 폰에서 APK를 열고 해당 브라우저/파일 앱의 설치 허용 안내를 따르면 설치할 수 있습니다. 실기기 실행·알림 전달 검증은 별도로 필요합니다.
+
+## 2026-10-18 UI/UX 개선
+
+날짜는 달력, 시간은 오전/오후·시·분 휠로 선택합니다. 설정 탭에서 앱 전체 알림음·진동을 관리하며 Android는 네 조합을 지원합니다. iOS 진동 및 웹 소리·진동 제어는 지원 제한을 표시합니다. 기록/통계에 실제 데이터 기반 주간 실행·활동별 횟수·시간·주간 목표 그래프와 연간 조회를 추가했습니다.
+
+[변경 파일·설계·테스트·실기기 체크리스트](docs/UX-UPGRADE.md) · [달력](docs/calendar-picker.png) · [시간 휠](docs/time-wheel.png)
+
+이 개선은 현재 소스와 웹 빌드에 반영되어 있습니다. 기존 APK는 이전 버전이며 폰에서 사용하려면 새 빌드가 필요합니다.
 
 ## 구현한 기능
 
@@ -97,7 +116,7 @@ Playwright는 설치된 Chrome을 사용합니다. 포트 8081에서 검증 서�
 - 웹 알림은 페이지가 열려 있고 브라우저가 타이머를 실행할 때만 가능합니다. 종료 상태 푸시, 서비스 워커 기반 푸시는 미구현입니다. HTTPS 또는 localhost 환경에서 사용하세요.
 - 웹의 브라우저 데이터 삭제·앱 제거 시 데이터도 삭제됩니다. 클라우드 동기화·백업/내보내기·다중 탭 동시 편집 충돌 처리는 미구현입니다. 웹은 한 탭에서 사용하세요.
 - 주 시작은 월요일입니다. 변경 가능한 도메인 함수 경계는 있으나 설정 화면은 아직 없습니다. 종료일이 있는 주간 목표는 해당 주에 기간이 겹치면 전체 목표 횟수로 계산합니다.
-- 날짜·시간은 텍스트 입력입니다. 시스템 날짜 선택기, 마일스톤별 마감일, 활동 선택지 독립 삭제/이름 변경 화면은 없습니다. 직접 만든 활동은 저장된 루틴의 활동 목록에 유지됩니다.
+- 날짜·시간은 공통 달력/휠 선택기를 사용합니다. 마일스톤별 마감일, 활동 선택지 독립 삭제/이름 변경 화면은 없습니다. 직접 만든 활동은 저장된 루틴의 활동 목록에 유지됩니다.
 - 전체 데이터 교체 저장 방식으로 데이터가 아주 많아지면 저장이 느려질 수 있습니다. 보관은 논리 삭제이며 영구 삭제 UI는 제공하지 않습니다.
 - `expo-doctor`는 20개 중 19개 검사를 완료했습니다. 설정 스키마 검사는 `exp.host` 연결 시간초과로 확인하지 못했습니다.
 - `npm audit fix`로 호환 범위 내 업데이트를 적용했으나 Expo/Metro 하위 의존성 경로의 취약점 27건(높음 19, 보통 8)이 남았습니다. 제안된 `--force` 수정은 Expo 44로 내리므로 적용하지 않았습니다. 배포 전 SDK 공급자 패치 여부를 재검토해야 합니다.

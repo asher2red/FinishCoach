@@ -54,3 +54,9 @@ example
 /playwright-report/
 
 /artifacts/
+
+/artifacts/*.ipa
+/artifacts/*.tar.gz
+/artifacts/*.app/
+/credentials.json
+/credentials/

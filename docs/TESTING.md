@@ -13,9 +13,9 @@
 | Playwright Chrome    | 실제 IndexedDB 저장과 reload, 완료/취소, 기록 수정, 실제 통계, 주간 목표, 프로젝트/마일스톤 완료, 빈 화면, 다크 모드, 유효성 검사                                |
 | Expo export          | 웹 정적 경로 및 Android/iOS Hermes 번들                                                                                                                          |
 | Expo install --check | SDK 58 의존성 호환성                                                                                                                                             |
-| Expo doctor          | 19/20 검사 완료. 원격 설정 스키마 검사는 exp.host 연결 시간초과                                                                                                  |
+| Expo doctor          | 2026-10-18 Android/iOS 로컬 빌드에서 각각 20/20 검사 통과                                                                                                        |
 
-SQLite 테스트는 Node 내장 SQLite의 실제 SQL 및 파일 재열기를 사용한다. Expo 네이티브 모듈 호출은 어댑터로 대체한다. Notification 테스트도 OS 대신 mock을 사용하므로 실기기 전달을 증명하지 않는다. Android는 이후 EAS에서 내부 배포용 APK 컴파일·서명을 완료했다(빌드 ID `04171dbc-591a-4901-9c6a-0a1c3bbe7288`). 실기기 설치·구동은 아직 검증하지 않았고, iOS 바이너리 컴파일 및 스토어 제출도 수행하지 않았다. 이 환경에는 Xcode simctl과 adb가 없다.
+SQLite 테스트는 Node 내장 SQLite의 실제 SQL 및 파일 재열기를 사용한다. Expo 네이티브 모듈 호출은 어댑터로 대체한다. Notification 테스트도 OS 대신 mock을 사용하므로 실기기 전달을 증명하지 않는다. Android는 EAS 클라우드에서 초기 APK를 생성했고, 2026-10-18 최신 UI 소스로 Android APK와 iOS 시뮬레이터 앱의 로컬 릴리스 빌드도 성공했다. Xcode·simctl·adb가 설치되어 있다. 실기기 설치·알림 전달과 스토어 제출은 아직 검증하지 않았다. 산출물과 실행 확인 범위는 [로컬 빌드 안내](LOCAL-BUILD.md)에 기록한다.
 
 `npm audit fix`를 실행했다. 취약점 27건(높음 19, 보통 8)은 남아 있다. 강제 수정은 호환되지 않는 Expo 44 다운그레이드여서 적용하지 않았다. 네트워크가 가능한 환경에서 doctor와 audit을 재확인해야 한다.
 
@@ -59,3 +59,7 @@ SQLite 테스트는 Node 내장 SQLite의 실제 SQL 및 파일 재열기를 사
 - [ ] localhost/HTTPS에서 알림 지원·미지원·거부를 각각 확인.
 - [ ] 열린 페이지에서 알림 전달, 탭 비활성/페이지 종료에서는 전달을 보장하지 않음을 확인.
 - [ ] 브라우저 데이터 삭제 시 기록 소실 확인. 현재 다중 탭 동시 편집은 지원하지 않음.
+
+## 2026-10-18 UI/UX 개선 검증
+
+새 기능의 31개 단위/통합 테스트 및 Chrome 4개 흐름, 날짜·시간·알림 설정·마이그레이션·그래프 검증과 플랫폼별 수동 절차는 [UI/UX 개선 보고](UX-UPGRADE.md)를 확인하세요. 기존 2026-10-17 APK 이후 최신 소스를 반영한 Android APK와 iOS 시뮬레이터 앱을 로컬에서 생성했습니다. 최신 파일은 [로컬 빌드 안내](LOCAL-BUILD.md)를 확인하세요.

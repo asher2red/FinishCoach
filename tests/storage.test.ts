@@ -25,6 +25,25 @@ describe("IndexedDB repository", () => {
     });
     await repository.commit(s);
     expect(await repository.load()).toEqual(s);
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const req = indexedDB.open("finish-coach-v1", 1);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("metadata", "readwrite");
+      tx.objectStore("metadata").delete("settings");
+      tx.oncomplete = () => resolve();
+      tx.onabort = () => reject(tx.error);
+    });
+    db.close();
+    expect(await repository.load()).toEqual(s);
+    for (const soundEnabled of [false, true])
+      for (const vibrationEnabled of [false, true]) {
+        s.settings = { soundEnabled, vibrationEnabled };
+        await repository.commit(s);
+        expect(await repository.load()).toEqual(s);
+      }
     s.projects[0].status = "completed" as "active";
     s.projects[0].completedAt = new Date().toISOString();
     s.milestones[0].completedAt = new Date().toISOString();
