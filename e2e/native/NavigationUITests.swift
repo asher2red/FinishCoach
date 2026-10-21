@@ -8,8 +8,86 @@ final class NavigationUITests: XCTestCase {
     add(attachment)
   }
 
+  func assertChoice(_ id: String, _ app: XCUIApplication) {
+    let choice = app.descendants(matching: .any)[id].firstMatch
+    let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "selected == true OR value == %@ OR value CONTAINS %@", "1", "선택됨"), object: choice)
+    XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 10), .completed)
+  }
+
+  func testMilestoneKeyboardVisibility() {
+    continueAfterFailure = false
+    XCUIDevice.shared.orientation = .portrait
+    let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
+    app.launch()
+    app.buttons["bottom-menu-projects"].tap()
+    app.buttons["＋ 프로젝트 만들기"].tap()
+    let scroll = app.descendants(matching: .any)["editor-scroll"].firstMatch
+    let title = app.textFields["프로젝트 제목"]
+    XCTAssertTrue(title.waitForExistence(timeout: 10))
+    title.tap()
+    title.typeText("Keyboard draft")
+    for index in 1...3 {
+      let add = app.buttons["＋ 마일스톤 추가"]
+      for _ in 0..<8 { if add.isHittable { break }; scroll.swipeUp() }
+      XCTAssertTrue(add.isHittable)
+      add.tap()
+      let field = app.textFields["마일스톤 \(index)"]
+      XCTAssertTrue(field.waitForExistence(timeout: 10))
+      XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+      let visible = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+        field.isHittable && field.frame.maxY <= app.keyboards.firstMatch.frame.minY + 1
+      }, object: nil)
+      XCTAssertEqual(XCTWaiter.wait(for: [visible], timeout: 5), .completed)
+      field.typeText("Step \(index)")
+      XCTAssertEqual(field.value as? String, "Step \(index)")
+    }
+    shot("milestones-keyboard-ios", app)
+    for _ in 0..<8 { if app.textViews["완료 기준"].isHittable { break }; scroll.swipeDown() }
+    let notes = app.textViews["완료 기준"]
+    notes.tap()
+    notes.typeText("Line one\nLine two\nLine three")
+    XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+    XCTAssertTrue(notes.isHittable)
+    XCTAssertLessThanOrEqual(notes.frame.maxY, app.keyboards.firstMatch.frame.minY + 1)
+    shot("multiline-keyboard-ios", app)
+    for _ in 0..<10 { if app.buttons["닫기"].firstMatch.isHittable { break }; scroll.swipeDown() }
+    app.buttons["닫기"].firstMatch.tap()
+    XCTAssertTrue(app.buttons["bottom-menu-projects"].waitForExistence(timeout: 10))
+    app.buttons["＋ 프로젝트 만들기"].tap()
+    XCTAssertEqual(app.textFields["프로젝트 제목"].value as? String, "")
+    XCTAssertFalse(app.textFields["마일스톤 1"].exists)
+    app.buttons["닫기"].firstMatch.tap()
+  }
+
+  func testBackgroundThemePersistence() {
+    continueAfterFailure = false
+    XCUIDevice.shared.orientation = .portrait
+    let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
+    app.launch()
+    app.buttons["bottom-menu-settings"].tap()
+    let scroll = app.descendants(matching: .any)["screen-scroll"].firstMatch
+    let dark = app.descendants(matching: .any)["background-theme-dark"].firstMatch
+    for _ in 0..<4 { if dark.isHittable { break }; scroll.swipeUp() }
+    XCTAssertTrue(dark.isHittable)
+    dark.tap()
+    assertChoice("background-theme-dark", app)
+    shot("background-dark-ios", app)
+    app.buttons["bottom-menu-today"].tap()
+    XCTAssertTrue(app.staticTexts["오늘, 하나씩 끝내볼까요?"].waitForExistence(timeout: 10))
+    shot("background-dark-today-ios", app)
+    app.terminate()
+    app.launch()
+    app.buttons["bottom-menu-settings"].tap()
+    assertChoice("background-theme-dark", app)
+    let light = app.descendants(matching: .any)["background-theme-light"].firstMatch
+    light.tap()
+    assertChoice("background-theme-light", app)
+    shot("background-light-ios", app)
+  }
+
   func testFixedMenuAndRoutes() {
     continueAfterFailure = false
+    XCUIDevice.shared.orientation = .portrait
     let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
     app.launch()
     let ids = ["today", "routines", "history", "statistics", "projects", "settings"]

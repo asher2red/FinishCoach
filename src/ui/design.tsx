@@ -7,8 +7,9 @@ import {
   Platform,
   ViewStyle,
 } from "react-native";
-import { palettes, tokens, surfaceShadow, SurfaceTone } from "./tokens";
+import { palettes, tokens, SurfaceTone } from "./tokens";
 import { ActionIcon, ActionIconName } from "./ActionIcon";
+import { InputVisibility } from "./InputVisibility";
 export const Theme = React.createContext(palettes.light);
 export function T({
   children,
@@ -46,7 +47,7 @@ export function Card({
   return (
     <View
       style={[
-        variant !== "metric" && surfaceShadow,
+        variant !== "metric" && c.shadow,
         {
           padding: tokens.space.card,
           borderRadius: tokens.radius.card,
@@ -156,7 +157,7 @@ export function Button({
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       style={({ pressed }) => [
-        tile && !disabled && surfaceShadow,
+        tile && !disabled && c.shadow,
         {
           paddingVertical: tile ? 16 : 12,
           paddingHorizontal: tokens.space.control,
@@ -258,21 +259,37 @@ export function Field({
   value,
   onChange,
   numeric = false,
+  autoFocus = false,
+  multiline = false,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   numeric?: boolean;
+  autoFocus?: boolean;
+  multiline?: boolean;
 }) {
   const c = React.useContext(Theme);
+  const input = React.useRef<React.ComponentRef<typeof TextInput>>(null);
+  const reveal = React.useContext(InputVisibility);
   return (
     <View style={{ gap: 6 }}>
       <T>{label}</T>
       <TextInput
+        ref={input}
+        autoFocus={autoFocus}
+        multiline={multiline}
+        onFocus={() => reveal(input.current)}
+        onContentSizeChange={() => {
+          if (input.current?.isFocused()) reveal(input.current);
+        }}
         accessibilityLabel={label}
         value={value}
         onChangeText={onChange}
         keyboardType={numeric ? "numeric" : "default"}
+        keyboardAppearance={c.dark ? "dark" : "light"}
+        selectionColor={c.accent}
+        placeholderTextColor={c.muted}
         style={{
           padding: 14,
           fontSize: 16,
@@ -281,7 +298,9 @@ export function Field({
           borderWidth: 1,
           borderColor: c.soft,
           borderRadius: 12,
-          minHeight: 48,
+          minHeight: multiline ? 96 : 48,
+          maxHeight: multiline ? 160 : undefined,
+          textAlignVertical: multiline ? "top" : "center",
         }}
       />
     </View>

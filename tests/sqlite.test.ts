@@ -77,7 +77,11 @@ it("executes SQLite schema, CRUD, reopen persistence, unique constraints and rol
         expect(await repository.load()).toEqual(s);
       }
     for (const themeColor of themeColors) {
-      s.settings = { ...normalizeSettings(s.settings), themeColor };
+      s.settings = {
+        ...normalizeSettings(s.settings),
+        themeColor,
+        backgroundTheme: "dark",
+      };
       await repository.commit(s);
       harness.db.close();
       harness.db = new DatabaseSync(file);

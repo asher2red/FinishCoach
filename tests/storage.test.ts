@@ -50,7 +50,11 @@ describe("IndexedDB repository", () => {
         expect(await repository.load()).toEqual(s);
       }
     for (const themeColor of themeColors) {
-      s.settings = { ...normalizeSettings(s.settings), themeColor };
+      s.settings = {
+        ...normalizeSettings(s.settings),
+        themeColor,
+        backgroundTheme: "dark",
+      };
       await repository.commit(s);
       expect((await repository.load())?.settings).toEqual(s.settings);
     }

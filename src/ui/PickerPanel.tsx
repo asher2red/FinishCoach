@@ -25,7 +25,7 @@ export function PickerPanel({
       <View
         style={{
           flex: 1,
-          backgroundColor: "#0008",
+          backgroundColor: c.overlay,
           justifyContent: Platform.OS === "web" ? "center" : "flex-end",
           alignItems: "center",
         }}
@@ -41,7 +41,7 @@ export function PickerPanel({
             width: "100%",
             maxWidth: 480,
             maxHeight: "95%",
-            backgroundColor: c.bg,
+            backgroundColor: c.elevated,
             borderRadius: 24,
           }}
         >

@@ -1,6 +1,18 @@
 import { Platform, ViewStyle } from "react-native";
 import { ThemeColor } from "../domain/settings";
 
+export const surfaceShadow: ViewStyle = Platform.select({
+  ios: {
+    shadowColor: "#24365A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+  },
+  android: { elevation: 2, shadowColor: "#24365A" },
+  web: { boxShadow: "0 4px 16px rgba(24, 39, 75, 0.06)" },
+  default: {},
+});
+
 // All component surfaces share one selected accent. Artwork is never recolored.
 const colors = {
   red: {
@@ -33,8 +45,12 @@ export function getPalette(color: ThemeColor = "green", dark = false) {
     colors[color][dark ? "dark" : "light"];
   const tone = { surface, border, ink: accent, glow };
   return {
+    dark,
     bg: dark ? "#111725" : "#F7F8FA",
     card: dark ? "#1C2535" : "#FFFFFF",
+    elevated: dark ? "#263247" : "#FFFFFF",
+    overlay: dark ? "#000A" : "#0008",
+    shadow: dark ? {} : surfaceShadow,
     text: dark ? "#F0F3FA" : "#172039",
     muted: dark ? "#B2BED2" : "#62718B",
     accent,
@@ -63,14 +79,3 @@ export const tokens = {
   space: { small: 8, control: 14, card: 20 },
   icon: { action: 24, tile: 40 },
 };
-export const surfaceShadow: ViewStyle = Platform.select({
-  ios: {
-    shadowColor: "#24365A",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-  },
-  android: { elevation: 2, shadowColor: "#24365A" },
-  web: { boxShadow: "0 4px 16px rgba(24, 39, 75, 0.06)" },
-  default: {},
-});

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { View, Text, ScrollView, Modal, Platform } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useStore } from "../data/context";
@@ -14,7 +14,11 @@ import {
   addDays,
 } from "../domain/model";
 import { saveRoutine, complete, undo, stats } from "../domain/engine";
-import { saveProject, setProjectStatus, projectDays } from "../domain/projects";
+import {
+  saveProjectWithMilestones,
+  setProjectStatus,
+  projectDays,
+} from "../domain/projects";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   Theme,
@@ -31,6 +35,7 @@ import { BrandMark } from "../ui/BrandMark";
 import { useAppTheme } from "../ui/useAppTheme";
 import { MenuNavigation } from "../navigation/MenuNavigation";
 import { navigateToPage } from "../navigation/menu";
+import { EditorScroll } from "../ui/EditorScroll";
 import { DateField } from "../ui/DateField";
 import { TimeField } from "../ui/TimeField";
 import { AnalyticsDashboard } from "../ui/AnalyticsDashboard";
@@ -71,8 +76,9 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
   const [routine, setRoutine] = useState<Routine | null>(null),
     [project, setProject] = useState<Project | null>(null),
     [log, setLog] = useState<CompletionLog | null>(null),
-    [message, setMessage] = useState(""),
-    [milestone, setMilestone] = useState("");
+    [message, setMessage] = useState("");
+  const projectSavePending = useRef(false);
+  const [newMilestoneId, setNewMilestoneId] = useState<string | null>(null);
   const [completionTime, setCompletionTime] = useState("");
   const [milestoneDrafts, setMilestoneDrafts] = useState<ProjectMilestone[]>(
     [],
@@ -701,7 +707,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       title="＋ 프로젝트 만들기"
                       selected
                       onPress={() => {
-                        setMilestone("");
+                        setNewMilestoneId(null);
                         setMilestoneDrafts([]);
                         setProject({
                           ...stamp(),
@@ -791,7 +797,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                                     )
                                     .sort((a, b) => a.sortOrder - b.sortOrder),
                                 );
-                                setMilestone("");
+                                setNewMilestoneId(null);
                               }}
                             />
                             {(
@@ -847,11 +853,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
               testID="app-shell"
               style={{ flex: 1, backgroundColor: c.bg }}
             >
-              <ScrollView
-                automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ padding: 24, alignItems: "center" }}
-              >
+              <EditorScroll>
                 <View style={{ width: "100%", maxWidth: 640, gap: 18 }}>
                   <Row>
                     <View style={{ flex: 1 }}>
@@ -904,6 +906,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       />
                       <Field
                         label="설명 (선택)"
+                        multiline
                         value={routine.description ?? ""}
                         onChange={(description) =>
                           change({ description: description || null })
@@ -1046,6 +1049,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       />
                       <Field
                         label="설명"
+                        multiline
                         value={project.description ?? ""}
                         onChange={(description) =>
                           setProject({
@@ -1072,6 +1076,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       />
                       <Field
                         label="완료 기준"
+                        multiline
                         value={project.completionCriteria ?? ""}
                         onChange={(completionCriteria) =>
                           setProject({
@@ -1084,6 +1089,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         <Card key={m.id}>
                           <Field
                             label={`마일스톤 ${index + 1}`}
+                            autoFocus={m.id === newMilestoneId}
                             value={m.title}
                             onChange={(title) =>
                               setMilestoneDrafts((ms) =>
@@ -1122,55 +1128,61 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                                 })
                               }
                             />
+                            <Button
+                              title={`마일스톤 ${index + 1} 삭제`}
+                              disabled={busy}
+                              onPress={() =>
+                                setMilestoneDrafts((items) =>
+                                  items.filter((item) => item.id !== m.id),
+                                )
+                              }
+                            />
                           </Row>
                         </Card>
                       ))}
-                      <Field
-                        label="추가할 마일스톤 (선택)"
-                        value={milestone}
-                        onChange={setMilestone}
+                      <Button
+                        title="＋ 마일스톤 추가"
+                        disabled={busy}
+                        onPress={() => {
+                          const item: ProjectMilestone = {
+                            ...stamp(),
+                            projectId: project.id,
+                            title: "",
+                            sortOrder: milestoneDrafts.length,
+                            completedAt: null,
+                          };
+                          setMilestoneDrafts((items) => [...items, item]);
+                          setNewMilestoneId(item.id);
+                        }}
                       />
                       <T>
-                        저장 후 다시 편집하면 마일스톤을 계속 추가할 수
-                        있습니다.
+                        마일스톤을 연속해서 추가한 뒤 한 번에 저장하세요. 빈
+                        항목은 이름을 입력하거나 삭제해주세요.
                       </T>
                       <Button
                         title="프로젝트 저장"
                         selected
                         disabled={busy}
-                        onPress={() =>
+                        onPress={() => {
+                          if (projectSavePending.current) return;
+                          projectSavePending.current = true;
                           void mutate((s) => {
-                            saveProject(s, project);
-                            const p = project;
-                            milestoneDrafts.forEach((draft, index) => {
-                              if (!draft.title.trim())
-                                throw new Error("마일스톤 이름을 입력하세요.");
-                              const item = s.milestones.find(
-                                (m) => m.id === draft.id,
-                              );
-                              if (item) {
-                                item.title = draft.title.trim();
-                                item.sortOrder = index;
-                                item.updatedAt = new Date().toISOString();
-                              }
-                            });
-                            if (milestone.trim())
-                              s.milestones.push({
-                                ...stamp(),
-                                projectId: p.id,
-                                title: milestone.trim(),
-                                sortOrder: s.milestones.filter(
-                                  (m) => m.projectId === p.id,
-                                ).length,
-                                completedAt: null,
-                              });
-                          }).then((ok) => {
-                            if (ok) {
-                              setProject(null);
-                              setMilestone("");
-                            }
+                            saveProjectWithMilestones(
+                              s,
+                              project,
+                              milestoneDrafts,
+                            );
                           })
-                        }
+                            .then((ok) => {
+                              if (ok) {
+                                setProject(null);
+                                setNewMilestoneId(null);
+                              }
+                            })
+                            .finally(() => {
+                              projectSavePending.current = false;
+                            });
+                        }}
                       />
                     </>
                   )}
@@ -1207,6 +1219,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       />
                       <Field
                         label="메모"
+                        multiline
                         value={log.note ?? ""}
                         onChange={(note) =>
                           setLog({ ...log, note: note || null })
@@ -1243,7 +1256,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                     </>
                   )}
                 </View>
-              </ScrollView>
+              </EditorScroll>
             </SafeAreaView>
           </EditorInsets>
         </Modal>

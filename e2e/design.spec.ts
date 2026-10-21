@@ -68,6 +68,7 @@ test("dark cards and long action titles stay within small screens", async ({
   await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto("/settings");
+  await page.getByRole("radio", { name: "Dark 배경", exact: true }).click();
   const action = page.getByRole("button", {
     name: "알림 권한 확인 및 요청",
     exact: true,
@@ -89,6 +90,9 @@ test("dark cards and long action titles stay within small screens", async ({
     path: "docs/design-mobile-dark.png",
     fullPage: true,
   });
+  await page.goto("/settings");
+  await page.getByRole("radio", { name: "Light 배경", exact: true }).click();
+  await page.goto("/");
   await page.emulateMedia({ colorScheme: "light" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();

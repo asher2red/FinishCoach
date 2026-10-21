@@ -78,3 +78,97 @@ test("six color themes apply immediately and persist across reload and routes", 
   ).toBeChecked();
   await page.screenshot({ path: "docs/theme-settings.png", fullPage: true });
 });
+
+test("background mode and all six accents persist independently of OS appearance", async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/settings");
+  const mode = (name: string) =>
+    page.getByRole("radio", { name: `${name} 배경`, exact: true });
+  await expect(mode("Light")).toBeChecked();
+  const background = page.getByText("배경 테마", { exact: true });
+  const accents = page.getByText("메뉴 컬러 테마", { exact: true });
+  expect((await background.boundingBox())!.y).toBeLessThan(
+    (await accents.boundingBox())!.y,
+  );
+  for (const name of ["Dark", "Light"]) {
+    await mode(name).click();
+    const expected = name === "Dark" ? "rgb(17, 23, 37)" : "rgb(247, 248, 250)";
+    await expect(page.getByTestId("app-shell").first()).toHaveCSS(
+      "background-color",
+      expected,
+    );
+    for (const color of ["red", "blue", "green", "orange", "purple", "black"]) {
+      const choice = page.getByRole("radio", {
+        name: `${color} 테마`,
+        exact: true,
+      });
+      await choice.click();
+      await expect(choice).toBeChecked();
+      await expect(mode(name)).toBeChecked();
+      await expect(page.getByTestId("app-shell").first()).toHaveCSS(
+        "background-color",
+        expected,
+      );
+    }
+    await page.reload();
+    await expect(mode(name)).toBeChecked();
+    await expect(
+      page.getByRole("radio", { name: "black 테마", exact: true }),
+    ).toBeChecked();
+    await page.emulateMedia({
+      colorScheme: name === "Dark" ? "light" : "dark",
+    });
+    await expect(mode(name)).toBeChecked();
+    await expect(page.locator("html")).toHaveCSS(
+      "color-scheme",
+      name.toLowerCase(),
+    );
+  }
+  await mode("Dark").click();
+  await page.getByRole("radio", { name: "green 테마", exact: true }).click();
+  await page.screenshot({
+    path: "docs/background-dark-settings.png",
+    fullPage: true,
+  });
+  for (const route of [
+    "/",
+    "/routines",
+    "/history",
+    "/statistics",
+    "/projects",
+    "/settings",
+  ]) {
+    await page.goto(route);
+    await expect(page.getByTestId("app-shell").first()).toHaveCSS(
+      "background-color",
+      "rgb(17, 23, 37)",
+    );
+  }
+  await page.goto("/routines");
+  await page
+    .getByRole("button", { name: "＋ 루틴 만들기", exact: true })
+    .click();
+  const field = page.getByLabel("활동 이름 (직접 추가 가능)");
+  await field.fill("테마 검증 초안");
+  await expect(field).toHaveCSS("background-color", "rgb(28, 37, 53)");
+  await page.getByRole("button", { name: "시작일 선택", exact: true }).click();
+  await expect(page.getByTestId("picker-panel")).toHaveCSS(
+    "background-color",
+    "rgb(38, 50, 71)",
+  );
+  await page.screenshot({
+    path: "docs/background-dark-picker.png",
+    fullPage: true,
+  });
+  await page.getByRole("button", { name: "취소", exact: true }).click();
+  await expect(field).toHaveValue("테마 검증 초안");
+  await page.getByRole("button", { name: "닫기", exact: true }).last().click();
+  await page.goto("/settings");
+  await mode("Light").click();
+  await page.screenshot({
+    path: "docs/background-light-settings.png",
+    fullPage: true,
+  });
+});

@@ -20,6 +20,7 @@
         "foregroundImage": "./assets/brand/adaptive-safe-1024.png"
       },
       "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize",
       "package": "com.finishcoach.app"
     },
     "web": {

@@ -1,4 +1,48 @@
-import { Project, State, localDate, dateAt } from "./model";
+import { Project, ProjectMilestone, State, localDate, dateAt } from "./model";
+export function saveProjectWithMilestones(
+  s: State,
+  p: Project,
+  drafts: ProjectMilestone[],
+) {
+  const ids = new Set<string>();
+  drafts.forEach((draft, index) => {
+    if (!draft.title.trim())
+      throw new Error(`마일스톤 ${index + 1} 이름을 입력하세요.`);
+    const existing = s.milestones.find((m) => m.id === draft.id);
+    if (
+      ids.has(draft.id) ||
+      draft.projectId !== p.id ||
+      (existing && (existing.projectId !== p.id || existing.deletedAt))
+    )
+      throw new Error(
+        "마일스톤 목록이 변경되었습니다. 편집 화면을 다시 열어주세요.",
+      );
+    ids.add(draft.id);
+  });
+  saveProject(s, p);
+  const now = new Date().toISOString();
+  for (const item of s.milestones)
+    if (item.projectId === p.id && !item.deletedAt && !ids.has(item.id)) {
+      item.deletedAt = now;
+      item.updatedAt = now;
+    }
+  drafts.forEach((draft, sortOrder) => {
+    const existing = s.milestones.find((m) => m.id === draft.id);
+    if (existing)
+      Object.assign(existing, {
+        title: draft.title.trim(),
+        sortOrder,
+        updatedAt: now,
+      });
+    else
+      s.milestones.push({
+        ...draft,
+        title: draft.title.trim(),
+        sortOrder,
+        updatedAt: now,
+      });
+  });
+}
 export function saveProject(s: State, p: Project) {
   if (!p.title.trim()) throw new Error("프로젝트 제목을 입력하세요.");
   for (const d of [p.startedAt, ...(p.targetDate ? [p.targetDate] : [])])

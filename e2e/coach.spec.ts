@@ -69,7 +69,10 @@ test("routine completion persists; history, statistics, weekly goal and project 
     .click();
   await page.getByLabel("프로젝트 제목").fill("첫 앱 출시");
   await page.getByLabel("완료 기준").fill("MVP 검증");
-  await page.getByLabel("추가할 마일스톤 (선택)").fill("핵심 기능");
+  await page
+    .getByRole("button", { name: "＋ 마일스톤 추가", exact: true })
+    .click();
+  await page.getByLabel("마일스톤 1", { exact: true }).fill("핵심 기능");
   await page
     .getByRole("button", { name: "프로젝트 저장", exact: true })
     .click();
@@ -96,6 +99,11 @@ test("routine completion persists; history, statistics, weekly goal and project 
 test("empty dark desktop layout and input validation", async ({ page }) => {
   await page.setViewportSize({ width: 1360, height: 900 });
   await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/settings");
+  await page.getByRole("radio", { name: "Dark 배경", exact: true }).click();
+  await expect(
+    page.getByRole("radio", { name: "Dark 배경", exact: true }),
+  ).toBeChecked();
   await page.goto("/");
   await expect(page.getByText("아직 기록이 없어요").first()).toBeVisible();
   await expect(page.getByTestId("app-shell")).toHaveCSS(
