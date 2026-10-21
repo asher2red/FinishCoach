@@ -1,3 +1,4 @@
+import { PurchaseProvider } from "../purchases/context";
 import { Stack } from "expo-router";
 import { Provider } from "../data/context";
 import { Platform, View } from "react-native";
@@ -40,7 +41,9 @@ function AppFrame() {
 export default function Layout() {
   return (
     <Provider>
-      <AppFrame />
+      <PurchaseProvider>
+        <AppFrame />
+      </PurchaseProvider>
     </Provider>
   );
 }

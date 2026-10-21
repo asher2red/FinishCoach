@@ -14,6 +14,32 @@ final class NavigationUITests: XCTestCase {
     XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 10), .completed)
   }
 
+  func testPurchaseSetupWithoutCredentials() {
+    continueAfterFailure = false
+    XCUIDevice.shared.orientation = .portrait
+    let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
+    app.launch()
+    app.buttons["bottom-menu-settings"].tap()
+    let scroll = app.descendants(matching: .any)["screen-scroll"].firstMatch
+    let title = app.staticTexts["인앱 결제 테스트"].firstMatch
+    XCTAssertTrue(title.waitForExistence(timeout: 10))
+    for _ in 0..<20 {
+      if title.frame.minY >= scroll.frame.minY && title.frame.maxY <= scroll.frame.maxY { break }
+      let below = title.frame.maxY > scroll.frame.maxY
+      let start = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: below ? 0.7 : 0.3))
+      let end = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: below ? 0.4 : 0.6))
+      start.press(forDuration: 0.05, thenDragTo: end)
+    }
+    XCTAssertGreaterThanOrEqual(title.frame.minY, scroll.frame.minY)
+    XCTAssertLessThanOrEqual(title.frame.maxY, scroll.frame.maxY)
+    XCTAssertTrue(app.staticTexts["현재 상태: 설정 필요"].exists)
+    XCTAssertTrue(app.staticTexts["구매 확인: 아직 확인하지 못함"].exists)
+    XCTAssertFalse(app.buttons["상품 가격 확인 필요"].isEnabled)
+    XCTAssertFalse(app.buttons["구매 복원"].isEnabled)
+    app.buttons["bottom-menu-today"].tap()
+    XCTAssertTrue(app.staticTexts["오늘, 하나씩 끝내볼까요?"].waitForExistence(timeout: 10))
+  }
+
   func testMilestoneKeyboardVisibility() {
     continueAfterFailure = false
     XCUIDevice.shared.orientation = .portrait

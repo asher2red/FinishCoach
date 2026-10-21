@@ -30,6 +30,7 @@ import {
   Field,
   Empty,
 } from "../ui/design";
+import { PurchaseSettings } from "../ui/PurchaseSettings";
 import { ThemeSettings } from "../ui/ThemeSettings";
 import { BrandMark } from "../ui/BrandMark";
 import { useAppTheme } from "../ui/useAppTheme";
@@ -595,6 +596,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                 {page === "설정" && (
                   <>
                     <ThemeSettings />
+                    <PurchaseSettings />
                     <NotificationSettings />
                   </>
                 )}
