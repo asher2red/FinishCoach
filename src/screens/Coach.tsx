@@ -1,3 +1,13 @@
+import {
+  activityKeys,
+  frequencyKeys,
+  periodKeys,
+  weekday,
+} from "../i18n/labels";
+import { formatRaw } from "../i18n/core";
+import { LanguageSettings } from "../ui/LanguageSettings";
+import { LocalizedError, type AppMessage } from "../i18n/core";
+import { useI18n } from "../i18n/context";
 import React, { useState, useMemo, useRef } from "react";
 import { View, Text, ScrollView, Modal, Platform } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -54,13 +64,17 @@ const activities = [
   "기상",
   "기타",
 ];
-const frequencies = {
-  daily: "매일",
-  weekly: "주 N회",
-  weekdays: "특정 요일",
-  once: "한 번",
-};
 export default function Coach({ section = "오늘" }: { section?: string }) {
+  const {
+    t: tr,
+    text,
+    locale,
+    number,
+    date: localizedDate,
+    count,
+    hydrated,
+  } = useI18n();
+
   const {
     state: s,
     ready,
@@ -77,7 +91,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
   const [routine, setRoutine] = useState<Routine | null>(null),
     [project, setProject] = useState<Project | null>(null),
     [log, setLog] = useState<CompletionLog | null>(null),
-    [message, setMessage] = useState("");
+    [message, setMessage] = useState<AppMessage>("");
   const projectSavePending = useRef(false);
   const [newMilestoneId, setNewMilestoneId] = useState<string | null>(null);
   const [completionTime, setCompletionTime] = useState("");
@@ -117,13 +131,13 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
     ),
     done = items.filter((o) => o.status === "completed").length;
   const title = (id: string) =>
-    s.routines.find((r) => r.id === id)?.title ?? "보관된 루틴";
+    s.routines.find((r) => r.id === id)?.title ?? tr("coach.archived.routine");
   const change = (patch: Partial<Routine>) =>
     setRoutine((r) => (r ? { ...r, ...patch } : r));
   const create = () =>
     setRoutine({
       ...stamp(),
-      title: "독서",
+      title: tr("coach.reading"),
       category: "독서",
       description: null,
       frequencyType: "daily",
@@ -174,7 +188,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
             <Row>
               <BrandMark />
               <Button
-                title="알림 설정"
+                title={tr("coach.notification.settings")}
                 icon="bell"
                 onPress={() => setPage("설정")}
               />
@@ -182,52 +196,61 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
             <MenuNavigation activePage={page} />
             <View>
               <Text style={{ color: c.muted }}>
-                {new Date().toLocaleDateString("ko-KR", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  weekday: "long",
-                })}
+                {hydrated
+                  ? new Date().toLocaleDateString(locale, {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      weekday: "long",
+                    })
+                  : "\u00a0"}
               </Text>
               <T big>
                 {page === "오늘"
-                  ? "오늘, 하나씩 끝내볼까요?"
+                  ? tr("coach.ready.to.finish.one.thing.today")
                   : page === "루틴"
-                    ? "꾸준함을 만드는 루틴"
+                    ? tr("coach.build.consistency.with.routines")
                     : page === "기록"
-                      ? "쌓여가는 나의 실행"
+                      ? tr("coach.your.progress.recorded")
                       : page === "통계"
-                        ? "실행으로 확인하는 성장"
+                        ? tr("coach.see.how.far.you.ve.come")
                         : page === "설정"
-                          ? "나에게 맞는 설정"
-                          : "끝까지 가는 프로젝트"}
+                          ? tr("coach.make.finish.coach.your.own")
+                          : tr("coach.take.your.projects.to.the.finish")}
               </T>
             </View>
             {!!error && (
               <Card>
-                <T>{error}</T>
+                <T>{text(error)}</T>
                 <Button
-                  title={ready ? "닫기" : "저장소 다시 열기"}
+                  title={
+                    ready ? tr("common.close") : tr("coach.reopen.storage")
+                  }
                   onPress={() => (ready ? clearError() : void reload())}
                 />
               </Card>
             )}
             {!!(message || notice) && (
               <Card>
-                <T>{message || notice}</T>
+                <T>{text(message || notice)}</T>
                 {!!message && (
-                  <Button title="확인" onPress={() => setMessage("")} />
+                  <Button
+                    title={tr("common.confirm")}
+                    onPress={() => setMessage("")}
+                  />
                 )}
               </Card>
             )}
             {!ready ? (
-              <T>저장소를 준비하고 있습니다…</T>
+              <T>{tr("coach.preparing.storage")}</T>
             ) : (
               <>
                 {page === "오늘" && (
                   <>
                     <Card variant="featured">
-                      <CardTitle icon="today">오늘의 핵심 행동</CardTitle>
+                      <CardTitle icon="today">
+                        {tr("coach.today.s.focus")}
+                      </CardTitle>
                       <Text
                         style={{
                           color: c.tones.today.ink,
@@ -241,21 +264,33 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         %
                       </Text>
                       <Text style={{ color: c.tones.today.ink }}>
-                        {done}개 완료 ·{" "}
-                        {items.filter((o) => o.status === "planned").length}개
-                        남음 ·{" "}
-                        {items.filter((o) => o.status === "skipped").length}개
-                        건너뜀
+                        {tr("today.summary", {
+                          done: number(done),
+                          remaining: number(
+                            items.filter((o) => o.status === "planned").length,
+                          ),
+                          skipped: number(
+                            items.filter((o) => o.status === "skipped").length,
+                          ),
+                        })}
                       </Text>
                     </Card>
                     <Row>
                       <View style={{ flex: 1 }}>
-                        <T big>오늘의 활동</T>
+                        <T big>{tr("coach.today.s.activities")}</T>
                       </View>
-                      <Button title="＋ 활동 추가" selected onPress={create} />
+                      <Button
+                        title={tr("coach.add.activity")}
+                        selected
+                        onPress={create}
+                      />
                     </Row>
                     {!items.length && (
-                      <Empty text="루틴을 추가해 첫 실행을 시작하세요. 주간 목표는 아래에서 자유롭게 기록할 수 있어요." />
+                      <Empty
+                        text={tr(
+                          "coach.add.a.routine.to.start.your.first.activity.you",
+                        )}
+                      />
                     )}
                     {items
                       .sort((a, b) =>
@@ -273,21 +308,21 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                           </T>
                           <T>
                             {new Date(o.scheduledAt).toLocaleTimeString(
-                              "ko-KR",
+                              locale,
                               { hour: "2-digit", minute: "2-digit" },
                             )}{" "}
                             ·{" "}
                             {
                               {
-                                planned: "예정",
-                                completed: "완료",
-                                skipped: "건너뜀",
+                                planned: tr("coach.scheduled"),
+                                completed: tr("common.complete"),
+                                skipped: tr("coach.skipped.coach"),
                               }[o.status]
                             }
                           </T>
                           <Row>
                             <Button
-                              title="상세"
+                              title={tr("coach.details")}
                               onPress={() =>
                                 setRoutine(
                                   s.routines.find(
@@ -299,7 +334,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                             {o.status === "completed" ? (
                               <>
                                 <Button
-                                  title="기록 수정"
+                                  title={tr("coach.edit.record")}
                                   onPress={() =>
                                     openLog(
                                       s.logs.find(
@@ -309,7 +344,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                                   }
                                 />
                                 <Button
-                                  title="완료 취소"
+                                  title={tr("coach.undo.completion")}
                                   disabled={busy}
                                   onPress={() =>
                                     void mutate((s) =>
@@ -321,7 +356,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                             ) : (
                               <>
                                 <Button
-                                  title="완료"
+                                  title={tr("common.complete")}
                                   selected
                                   disabled={busy}
                                   onPress={() =>
@@ -333,8 +368,8 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                                 <Button
                                   title={
                                     o.status === "skipped"
-                                      ? "다시 예정"
-                                      : "건너뛰기"
+                                      ? tr("coach.schedule.again")
+                                      : tr("coach.skip")
                                   }
                                   disabled={busy}
                                   onPress={() =>
@@ -367,25 +402,28 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       .map((r) => (
                         <Card key={r.id} tone="routines">
                           <T>
-                            {r.title} · 주 {r.weeklyTarget}회 목표
+                            {tr("routines.weeklyTitle", {
+                              title: r.title,
+                              count: number(r.weeklyTarget ?? 0),
+                            })}
                           </T>
                           <T>
-                            이번 주{" "}
-                            {
-                              s.logs.filter(
-                                (l) =>
-                                  !l.deletedAt &&
-                                  l.routineId === r.id &&
-                                  localDate(new Date(l.completedAt)) >=
-                                    weekStart(today) &&
-                                  localDate(new Date(l.completedAt)) <
-                                    addDays(weekStart(today), 7),
-                              ).length
-                            }
-                            회 완료 · 정해진 요일 없이 실행
+                            {tr("routines.weeklyDone", {
+                              count: number(
+                                s.logs.filter(
+                                  (l) =>
+                                    !l.deletedAt &&
+                                    l.routineId === r.id &&
+                                    localDate(new Date(l.completedAt)) >=
+                                      weekStart(today) &&
+                                    localDate(new Date(l.completedAt)) <
+                                      addDays(weekStart(today), 7),
+                                ).length,
+                              ),
+                            })}
                           </T>
                           <Button
-                            title="지금 실행 기록"
+                            title={tr("coach.record.activity.now")}
                             disabled={busy}
                             onPress={() =>
                               void mutate((s) => complete(s, r.id))
@@ -393,9 +431,11 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                           />
                         </Card>
                       ))}
-                    <T big>진행 중인 프로젝트</T>
+                    <T big>{tr("coach.active.projects")}</T>
                     {!s.projects.some((p) => p.status === "active") && (
-                      <Empty text="프로젝트에서 완성하고 싶은 일을 등록하세요." />
+                      <Empty
+                        text={tr("coach.add.a.project.you.d.like.to.finish")}
+                      />
                     )}
                     {s.projects
                       .filter((p) => p.status === "active")
@@ -403,24 +443,24 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         <Card key={p.id} tone="projects">
                           <CardTitle icon="projects">{p.title}</CardTitle>
                           <T>
-                            마일스톤{" "}
-                            {
-                              s.milestones.filter(
-                                (m) =>
-                                  m.projectId === p.id &&
-                                  !m.deletedAt &&
-                                  m.completedAt,
-                              ).length
-                            }{" "}
-                            /{" "}
-                            {
-                              s.milestones.filter(
-                                (m) => m.projectId === p.id && !m.deletedAt,
-                              ).length
-                            }
+                            {tr("projects.progress", {
+                              done: number(
+                                s.milestones.filter(
+                                  (m) =>
+                                    m.projectId === p.id &&
+                                    !m.deletedAt &&
+                                    m.completedAt,
+                                ).length,
+                              ),
+                              total: number(
+                                s.milestones.filter(
+                                  (m) => m.projectId === p.id && !m.deletedAt,
+                                ).length,
+                              ),
+                            })}
                           </T>
                           <Button
-                            title="프로젝트 보기"
+                            title={tr("coach.view.projects")}
                             onPress={() => setPage("프로젝트")}
                           />
                         </Card>
@@ -431,18 +471,26 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                   <>
                     <Row>
                       <Button
-                        title="＋ 루틴 만들기"
+                        title={tr("coach.create.routine")}
                         selected
                         onPress={create}
                       />
                       <Button
-                        title={archive ? "현재 루틴" : "보관함"}
+                        title={
+                          archive
+                            ? tr("coach.current.routines")
+                            : tr("coach.archive")
+                        }
                         onPress={() => setArchive(!archive)}
                       />
                     </Row>
                     {!s.routines.filter((r) => Boolean(r.deletedAt) === archive)
                       .length && (
-                      <Empty text="활동과 반복 빈도를 선택해 나만의 루틴을 만드세요." />
+                      <Empty
+                        text={tr(
+                          "coach.choose.an.activity.and.frequency.to.create.your.own",
+                        )}
+                      />
                     )}
                     {s.routines
                       .filter((r) => Boolean(r.deletedAt) === archive)
@@ -450,25 +498,37 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         <Card key={r.id} tone="routines">
                           <T big>{r.title}</T>
                           <T>
-                            {frequencies[r.frequencyType]}
-                            {r.frequencyType === "weekly"
-                              ? ` ${r.weeklyTarget}회`
-                              : ""}{" "}
-                            · {r.durationMinutes ?? "미지정"}분 ·{" "}
-                            {r.isActive ? "활성" : "일시 중지"}
+                            {tr("routines.summary", {
+                              frequency:
+                                r.frequencyType === "weekly"
+                                  ? tr("routines.weeklyFrequency", {
+                                      count: number(r.weeklyTarget ?? 0),
+                                    })
+                                  : tr(frequencyKeys[r.frequencyType]),
+                              duration:
+                                r.durationMinutes === null
+                                  ? tr("coach.not.set")
+                                  : count(
+                                      "units.minuteCount",
+                                      r.durationMinutes,
+                                    ),
+                              status: r.isActive
+                                ? tr("coach.active")
+                                : tr("coach.paused"),
+                            })}
                           </T>
                           <Row>
                             <Button
-                              title="상세 · 수정"
+                              title={tr("coach.details.edit")}
                               onPress={() => setRoutine(r)}
                             />
                             <Button
                               title={
                                 r.deletedAt
-                                  ? "복원"
+                                  ? tr("coach.restore")
                                   : r.isActive
-                                    ? "일시 중지"
-                                    : "다시 시작"
+                                    ? tr("coach.paused")
+                                    : tr("coach.resume")
                               }
                               disabled={busy}
                               onPress={() =>
@@ -483,7 +543,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                             />
                             {!r.deletedAt && (
                               <Button
-                                title="보관"
+                                title={tr("coach.archive.coach")}
                                 disabled={busy}
                                 onPress={() =>
                                   void mutate((s) =>
@@ -507,33 +567,36 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       {["일", "주", "월", "년"].map((p) => (
                         <Button
                           key={p}
-                          title={p}
+                          title={tr(periodKeys[p as Period])}
                           selected={period === p}
                           onPress={() => setPeriod(p)}
                         />
                       ))}
                     </Row>
                     <DateField
-                      label="조회 기준일"
+                      label={tr("coach.reference.date")}
                       value={date}
                       onChange={(v) => setDate(v!)}
                     />
                     <Row>
                       <Button
-                        title="이전"
+                        title={tr("coach.previous")}
                         disabled={!validDate}
                         onPress={() => setDate(shiftPeriod(date, period, -1))}
                       />
-                      <Button title="오늘" onPress={() => setDate(today)} />
                       <Button
-                        title="다음"
+                        title={tr("navigation.today")}
+                        onPress={() => setDate(today)}
+                      />
+                      <Button
+                        title={tr("coach.next")}
                         disabled={!validDate}
                         onPress={() => setDate(shiftPeriod(date, period, 1))}
                       />
                     </Row>
                     <Row>
                       <Button
-                        title="전체"
+                        title={tr("common.all")}
                         selected={filter === "전체"}
                         onPress={() => setFilter("전체")}
                       />
@@ -556,9 +619,13 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         setPeriod("일");
                       }}
                     />
-                    <T big>날짜별 실행 기록</T>
+                    <T big>{tr("coach.activity.records.by.date")}</T>
                     {!logs.length && (
-                      <Empty text="이 기간에 완료 기록이 없습니다." />
+                      <Empty
+                        text={tr(
+                          "coach.no.completed.activities.in.this.period",
+                        )}
+                      />
                     )}
                     {logs.slice(0, visibleLogs).map((l, index) => (
                       <View key={l.id} style={{ gap: 10 }}>
@@ -570,14 +637,18 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         <Card>
                           <T>{title(l.routineId)}</T>
                           <T>
-                            {new Date(l.completedAt).toLocaleString("ko-KR")} ·{" "}
-                            {l.actualDurationMinutes ?? "미입력"}분
+                            {new Date(l.completedAt).toLocaleString(locale)} ·{" "}
+                            {l.actualDurationMinutes ?? tr("coach.not.entered")}
+                            {tr("units.minutes")}
                           </T>
                           {!!l.note && <T>{l.note}</T>}
                           <Row>
-                            <Button title="수정" onPress={() => openLog(l)} />
                             <Button
-                              title="완료 취소"
+                              title={tr("coach.edit")}
+                              onPress={() => openLog(l)}
+                            />
+                            <Button
+                              title={tr("coach.undo.completion")}
                               disabled={busy}
                               onPress={() => void mutate((s) => undo(s, l.id))}
                             />
@@ -587,7 +658,10 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                     ))}
                     {logs.length > visibleLogs && (
                       <Button
-                        title={`기록 더 보기 (${visibleLogs} / ${logs.length})`}
+                        title={tr("records.showMore", {
+                          shown: visibleLogs,
+                          total: logs.length,
+                        })}
                         onPress={() => setVisibleLogs((n) => n + 50)}
                       />
                     )}
@@ -595,6 +669,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                 )}
                 {page === "설정" && (
                   <>
+                    <LanguageSettings />
                     <ThemeSettings />
                     <PurchaseSettings />
                     <NotificationSettings />
@@ -615,17 +690,24 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       }}
                     />
                     {!s.logs.some((l) => !l.deletedAt) && (
-                      <Empty text="첫 활동을 완료하면 실제 데이터로 통계를 확인할 수 있어요." />
+                      <Empty
+                        text={tr(
+                          "coach.complete.your.first.activity.to.see.statistics.based.on",
+                        )}
+                      />
                     )}
                     <Row>
                       {[
                         [
                           `${n.weeklyDone} / ${n.weeklyGoal}`,
-                          "이번 주 완료 / 목표",
+                          tr("coach.completed.goal.this.week"),
                         ],
-                        [n.month, "이번 달 활동"],
-                        [n.year, "올해 활동"],
-                        [`${n.minutes}분`, "누적 실행 시간"],
+                        [n.month, tr("coach.activities.this.month")],
+                        [n.year, tr("coach.activities.this.year")],
+                        [
+                          count("units.minuteCount", n.minutes),
+                          tr("coach.total.activity.time"),
+                        ],
                       ].map(([value, label]) => (
                         <View key={label} style={{ flex: 1, minWidth: 160 }}>
                           <Card>
@@ -636,11 +718,16 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       ))}
                     </Row>
                     <Card>
-                      <T big>최근 6주 실행 추이</T>
+                      <T big>{tr("coach.activity.over.the.last.6.weeks")}</T>
                       {n.trends.map((t) => (
                         <View key={t.date} style={{ gap: 7 }}>
                           <T>
-                            {t.date} · {t.count}회
+                            {tr("stats.chartPoint", {
+                              date: localizedDate(
+                                new Date(t.date + "T12:00:00"),
+                              ),
+                              count: number(t.count),
+                            })}
                           </T>
                           <View
                             style={{
@@ -661,7 +748,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         </View>
                       ))}
                     </Card>
-                    <T big>활동별 완료율</T>
+                    <T big>{tr("coach.completion.by.activity")}</T>
                     {s.routines.map((r) => {
                       const total = s.occurrences.filter(
                         (o) => o.routineId === r.id && o.localDate <= today,
@@ -686,19 +773,35 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                           <CardTitle icon="routines">{r.title}</CardTitle>
                           <T>
                             {r.frequencyType === "weekly"
-                              ? `이번 주 ${weekly} / ${r.weeklyTarget}회 · ${Math.round((weekly / Math.max(1, r.weeklyTarget ?? 0)) * 100)}%`
-                              : `${count} / ${total}회 · ${total ? Math.round((count / total) * 100) : 0}%`}
+                              ? tr("stats.weeklyProgress", {
+                                  done: weekly,
+                                  target: r.weeklyTarget ?? 0,
+                                  rate: Math.round(
+                                    (weekly /
+                                      Math.max(1, r.weeklyTarget ?? 0)) *
+                                      100,
+                                  ),
+                                })
+                              : tr("stats.progress", {
+                                  done: count,
+                                  target: total,
+                                  rate: total
+                                    ? Math.round((count / total) * 100)
+                                    : 0,
+                                })}
                           </T>
                         </Card>
                       );
                     })}
-                    <T big>완성한 프로젝트</T>
+                    <T big>{tr("coach.completed.projects")}</T>
                     {s.projects
                       .filter((p) => p.status === "completed" && p.completedAt)
                       .map((p) => (
                         <Card key={p.id} tone="projects">
                           <CardTitle icon="projects">{p.title}</CardTitle>
-                          <T>{projectDays(p)}일 소요</T>
+                          <T>
+                            {count("projects.elapsed", projectDays(p) ?? 0)}
+                          </T>
                         </Card>
                       ))}
                   </>
@@ -706,7 +809,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                 {page === "프로젝트" && (
                   <>
                     <Button
-                      title="＋ 프로젝트 만들기"
+                      title={tr("coach.create.project")}
                       selected
                       onPress={() => {
                         setNewMilestoneId(null);
@@ -724,7 +827,11 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       }}
                     />
                     {!s.projects.length && (
-                      <Empty text="완료 기준을 정하고 작은 마일스톤부터 시작하세요." />
+                      <Empty
+                        text={tr(
+                          "coach.set.a.finish.line.and.start.with.small.milestones",
+                        )}
+                      />
                     )}
                     {s.projects
                       .filter((p) => !p.deletedAt)
@@ -734,22 +841,37 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                             {p.title}
                           </CardTitle>
                           <T>
-                            {
-                              {
-                                active: "진행 중",
-                                paused: "보류",
-                                completed: "완료",
-                                cancelled: "취소",
-                              }[p.status]
-                            }{" "}
-                            · {p.startedAt} ~ {p.targetDate ?? "목표일 미정"}
+                            {tr("projects.dateRange", {
+                              status: {
+                                active: tr("coach.in.progress"),
+                                paused: tr("coach.on.hold"),
+                                completed: tr("common.complete"),
+                                cancelled: tr("common.cancel"),
+                              }[p.status],
+                              start: localizedDate(
+                                new Date(p.startedAt + "T12:00:00"),
+                              ),
+                              target: p.targetDate
+                                ? localizedDate(
+                                    new Date(p.targetDate + "T12:00:00"),
+                                  )
+                                : tr("coach.no.target.date"),
+                            })}
                           </T>
                           {!!p.description && <T>{p.description}</T>}
                           {!!p.completionCriteria && (
-                            <T>완료 기준: {p.completionCriteria}</T>
+                            <T>
+                              {tr("projects.criteria", {
+                                value: p.completionCriteria!,
+                              })}
+                            </T>
                           )}
                           {!!p.completedAt && (
-                            <T>완료일 {localDate(new Date(p.completedAt))}</T>
+                            <T>
+                              {tr("projects.completedDate", {
+                                date: localizedDate(new Date(p.completedAt!)),
+                              })}
+                            </T>
                           )}
                           {s.milestones
                             .filter((m) => m.projectId === p.id && !m.deletedAt)
@@ -772,7 +894,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                                   }
                                 />
                                 <Button
-                                  title="삭제"
+                                  title={tr("common.delete")}
                                   disabled={busy}
                                   onPress={() =>
                                     void mutate((s) => {
@@ -788,7 +910,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                             ))}
                           <Row>
                             <Button
-                              title="편집 · 마일스톤 추가"
+                              title={tr("coach.edit.add.milestones")}
                               onPress={() => {
                                 setProject(p);
                                 setMilestoneDrafts(
@@ -816,10 +938,10 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                                   key={status}
                                   title={
                                     {
-                                      active: "재개",
-                                      paused: "보류",
-                                      completed: "완료",
-                                      cancelled: "취소",
+                                      active: tr("coach.resume.coach"),
+                                      paused: tr("coach.on.hold"),
+                                      completed: tr("common.complete"),
+                                      cancelled: tr("common.cancel"),
                                     }[status]
                                   }
                                   disabled={busy}
@@ -838,9 +960,11 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
               </>
             )}
             <Text style={{ color: c.muted }}>
-              {busy ? "저장 중…" : "기기에 저장 · 로그인 없이 나의 속도로"}
+              {busy
+                ? tr("coach.saving")
+                : tr("coach.saved.on.this.device.go.at.your.own.pace")}
               {Platform.OS === "web"
-                ? " · 브라우저 데이터 삭제 시 기록도 삭제됩니다."
+                ? tr("coach.clearing.browser.data.also.deletes.your.records")
                 : ""}
             </Text>
           </View>
@@ -861,18 +985,22 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                     <View style={{ flex: 1 }}>
                       <T big>
                         {routine
-                          ? "나의 루틴"
+                          ? tr("coach.my.routine")
                           : project
-                            ? "나의 프로젝트"
-                            : "실행 기록 수정"}
+                            ? tr("coach.my.project")
+                            : tr("coach.edit.activity.record")}
                       </T>
                     </View>
-                    <Button title="닫기" disabled={busy} onPress={close} />
+                    <Button
+                      title={tr("common.close")}
+                      disabled={busy}
+                      onPress={close}
+                    />
                   </Row>
-                  {!!error && <T>{error}</T>}
+                  {!!error && <T>{text(error)}</T>}
                   {routine && (
                     <>
-                      <T>1. 어떤 활동을 할까요?</T>
+                      <T>{tr("coach.1.what.would.you.like.to.do")}</T>
                       <Row>
                         {[
                           ...new Set([
@@ -882,12 +1010,18 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         ].map((a) => (
                           <Button
                             key={a}
-                            title={a}
+                            title={
+                              activityKeys[a]
+                                ? formatRaw(locale, activityKeys[a])
+                                : a
+                            }
                             selected={routine.category === a}
                             onPress={() =>
                               change({
                                 category: a,
-                                title: a,
+                                title: activityKeys[a]
+                                  ? formatRaw(locale, activityKeys[a])
+                                  : a,
                                 durationMinutes: ["취침", "기상"].includes(a)
                                   ? null
                                   : 20,
@@ -897,7 +1031,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         ))}
                       </Row>
                       <Field
-                        label="활동 이름 (직접 추가 가능)"
+                        label={tr("coach.activity.name.you.can.add.your.own")}
                         value={routine.title}
                         onChange={(title) =>
                           change({
@@ -907,23 +1041,23 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         }
                       />
                       <Field
-                        label="설명 (선택)"
+                        label={tr("coach.description.optional")}
                         multiline
                         value={routine.description ?? ""}
                         onChange={(description) =>
                           change({ description: description || null })
                         }
                       />
-                      <T>2. 얼마나 자주 할까요?</T>
+                      <T>{tr("coach.2.how.often")}</T>
                       <Row>
                         {(
                           Object.keys(
-                            frequencies,
-                          ) as (keyof typeof frequencies)[]
+                            frequencyKeys,
+                          ) as (keyof typeof frequencyKeys)[]
                         ).map((f) => (
                           <Button
                             key={f}
-                            title={frequencies[f]}
+                            title={tr(frequencyKeys[f])}
                             selected={routine.frequencyType === f}
                             onPress={() => change({ frequencyType: f })}
                           />
@@ -931,18 +1065,22 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       </Row>
                       {routine.frequencyType === "weekly" && (
                         <>
-                          <T>주간 목표 횟수</T>
+                          <T>{tr("coach.weekly.goal.coach")}</T>
                           <Row>
                             {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                               <Button
                                 key={n}
-                                title={`${n}회`}
+                                title={tr("routines.goalCount", { count: n })}
                                 selected={routine.weeklyTarget === n}
                                 onPress={() => change({ weeklyTarget: n })}
                               />
                             ))}
                           </Row>
-                          <T>주간 목표는 특정 날짜에 강제 배정하지 않습니다.</T>
+                          <T>
+                            {tr(
+                              "coach.weekly.goals.are.not.assigned.to.specific.dates",
+                            )}
+                          </T>
                         </>
                       )}
                       {routine.frequencyType === "weekdays" && (
@@ -951,7 +1089,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                             (d, i) => (
                               <Button
                                 key={d}
-                                title={d}
+                                title={weekday(locale, i)}
                                 selected={routine.preferredDays.includes(i)}
                                 onPress={() =>
                                   change({
@@ -973,7 +1111,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                           {[10, 15, 20, 30, 45, 60].map((n) => (
                             <Button
                               key={n}
-                              title={`${n}분`}
+                              title={tr("units.duration", { minutes: n })}
                               selected={routine.durationMinutes === n}
                               onPress={() => change({ durationMinutes: n })}
                             />
@@ -982,7 +1120,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       )}
                       {!["취침", "기상"].includes(routine.category) && (
                         <Field
-                          label="소요 시간 (분, 선택)"
+                          label={tr("coach.duration.minutes.optional")}
                           numeric
                           value={
                             routine.durationMinutes === null
@@ -998,14 +1136,16 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       )}
                       <DateField
                         label={
-                          routine.frequencyType === "once" ? "실행일" : "시작일"
+                          routine.frequencyType === "once"
+                            ? tr("coach.activity.date")
+                            : tr("coach.start.date")
                         }
                         value={routine.startDate}
                         onChange={(v) => change({ startDate: v! })}
                       />
                       {routine.frequencyType !== "once" && (
                         <DateField
-                          label="종료일 (선택)"
+                          label={tr("coach.end.date.optional")}
                           value={routine.endDate}
                           optional
                           min={routine.startDate}
@@ -1015,7 +1155,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       {routine.frequencyType !== "weekly" && (
                         <>
                           <TimeField
-                            label="알림 및 목표 시각"
+                            label={tr("coach.notification.and.target.time")}
                             value={routine.reminderTime}
                             optional
                             onChange={(reminderTime) =>
@@ -1023,13 +1163,14 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                             }
                           />
                           <T>
-                            비워 두면 알림 없이 오전 9시 일정으로 표시합니다.
-                            상단 알림 설정에서 권한을 허용하세요.
+                            {tr(
+                              "coach.leave.blank.to.schedule.at.9.am.without.notifications",
+                            )}
                           </T>
                         </>
                       )}
                       <Button
-                        title="루틴 저장"
+                        title={tr("coach.save.routine")}
                         selected
                         disabled={busy}
                         onPress={() =>
@@ -1045,12 +1186,12 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                   {project && (
                     <>
                       <Field
-                        label="프로젝트 제목"
+                        label={tr("coach.project.title")}
                         value={project.title}
                         onChange={(title) => setProject({ ...project, title })}
                       />
                       <Field
-                        label="설명"
+                        label={tr("coach.description")}
                         multiline
                         value={project.description ?? ""}
                         onChange={(description) =>
@@ -1061,14 +1202,14 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         }
                       />
                       <DateField
-                        label="프로젝트 시작일"
+                        label={tr("coach.project.start.date")}
                         value={project.startedAt}
                         onChange={(v) =>
                           setProject({ ...project, startedAt: v! })
                         }
                       />
                       <DateField
-                        label="프로젝트 목표일 (선택)"
+                        label={tr("coach.project.target.date.optional")}
                         value={project.targetDate}
                         optional
                         min={project.startedAt}
@@ -1077,7 +1218,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         }
                       />
                       <Field
-                        label="완료 기준"
+                        label={tr("coach.finish.criteria.coach")}
                         multiline
                         value={project.completionCriteria ?? ""}
                         onChange={(completionCriteria) =>
@@ -1090,7 +1231,9 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                       {milestoneDrafts.map((m, index) => (
                         <Card key={m.id}>
                           <Field
-                            label={`마일스톤 ${index + 1}`}
+                            label={tr("projects.milestones.label", {
+                              number: index + 1,
+                            })}
                             autoFocus={m.id === newMilestoneId}
                             value={m.title}
                             onChange={(title) =>
@@ -1103,7 +1246,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                           />
                           <Row>
                             <Button
-                              title="위로"
+                              title={tr("coach.move.up")}
                               disabled={index === 0}
                               onPress={() =>
                                 setMilestoneDrafts((ms) => {
@@ -1117,7 +1260,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                               }
                             />
                             <Button
-                              title="아래로"
+                              title={tr("coach.move.down")}
                               disabled={index === milestoneDrafts.length - 1}
                               onPress={() =>
                                 setMilestoneDrafts((ms) => {
@@ -1131,7 +1274,9 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                               }
                             />
                             <Button
-                              title={`마일스톤 ${index + 1} 삭제`}
+                              title={tr("projects.milestones.delete", {
+                                number: index + 1,
+                              })}
                               disabled={busy}
                               onPress={() =>
                                 setMilestoneDrafts((items) =>
@@ -1143,7 +1288,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         </Card>
                       ))}
                       <Button
-                        title="＋ 마일스톤 추가"
+                        title={tr("projects.milestones.add")}
                         disabled={busy}
                         onPress={() => {
                           const item: ProjectMilestone = {
@@ -1158,11 +1303,12 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         }}
                       />
                       <T>
-                        마일스톤을 연속해서 추가한 뒤 한 번에 저장하세요. 빈
-                        항목은 이름을 입력하거나 삭제해주세요.
+                        {tr(
+                          "coach.add.milestones.then.save.them.together.name.or.delete",
+                        )}
                       </T>
                       <Button
-                        title="프로젝트 저장"
+                        title={tr("coach.save.project")}
                         selected
                         disabled={busy}
                         onPress={() => {
@@ -1191,21 +1337,21 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                   {log && (
                     <>
                       <DateField
-                        label="완료 날짜"
+                        label={tr("coach.completion.date")}
                         value={completionTime.slice(0, 10)}
                         onChange={(v) =>
                           setCompletionTime(v + completionTime.slice(10))
                         }
                       />
                       <TimeField
-                        label="완료 시각"
+                        label={tr("coach.completion.time")}
                         value={completionTime.slice(11)}
                         onChange={(v) =>
                           setCompletionTime(completionTime.slice(0, 11) + v)
                         }
                       />
                       <Field
-                        label="실제 소요 시간 (분)"
+                        label={tr("coach.actual.duration.minutes")}
                         numeric
                         value={
                           log.actualDurationMinutes === null
@@ -1220,7 +1366,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         }
                       />
                       <Field
-                        label="메모"
+                        label={tr("coach.notes")}
                         multiline
                         value={log.note ?? ""}
                         onChange={(note) =>
@@ -1228,7 +1374,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                         }
                       />
                       <Button
-                        title="기록 저장"
+                        title={tr("coach.save.record")}
                         selected
                         disabled={busy}
                         onPress={() =>
@@ -1240,11 +1386,16 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                               (!Number.isFinite(log.actualDurationMinutes) ||
                                 log.actualDurationMinutes < 0)
                             )
-                              throw new Error("소요 시간을 확인하세요.");
+                              throw new LocalizedError(
+                                "errors.check.the.duration",
+                              );
                             const i = s.logs.findIndex(
                               (l) => l.id === log.id && !l.deletedAt,
                             );
-                            if (i < 0) throw new Error("기록이 없습니다.");
+                            if (i < 0)
+                              throw new LocalizedError(
+                                "coach.no.records.found",
+                              );
                             s.logs[i] = {
                               ...log,
                               completedAt,

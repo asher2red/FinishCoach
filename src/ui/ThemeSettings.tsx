@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/context";
 import React from "react";
 import { View, Text, Pressable, Platform, ViewStyle } from "react-native";
 import { useStore } from "../data/context";
@@ -10,6 +11,8 @@ import { Card, T, Theme } from "./design";
 import { getPalette, tokens } from "./tokens";
 
 export function ThemeSettings() {
+  const { t: tr } = useI18n();
+
   const { state, mutate, busy } = useStore();
   const { themeColor: selected, backgroundTheme } = normalizeSettings(
     state.settings,
@@ -19,24 +22,34 @@ export function ThemeSettings() {
   return (
     <>
       <Card>
-        <T big>배경 테마</T>
-        <T>앱 배경을 선택하세요. 기기의 화면 모드와 관계없이 유지합니다.</T>
+        <T big>{tr("theme.settings.background.theme")}</T>
+        <T>
+          {tr(
+            "theme.settings.choose.your.app.background.your.choice.is.independent.of",
+          )}
+        </T>
         <View
           accessibilityRole="radiogroup"
-          accessibilityLabel="배경 테마"
+          accessibilityLabel={tr("theme.settings.background.theme")}
           style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}
         >
           {backgroundThemes.map((mode) => {
             const active = backgroundTheme === mode;
-            const label = mode === "light" ? "Light" : "Dark";
+            const label = mode === "light" ? tr("theme.light") : tr("theme.dark");
             const preview = getPalette(selected, mode === "dark");
             return (
               <Pressable
                 key={mode}
                 testID={`background-theme-${mode}`}
                 accessibilityRole="radio"
-                accessibilityLabel={`${label} 배경`}
-                accessibilityValue={{ text: active ? "선택됨" : "선택 안 됨" }}
+                accessibilityLabel={tr("theme.backgroundOption", {
+                  label: label,
+                })}
+                accessibilityValue={{
+                  text: active
+                    ? tr("theme.settings.selected")
+                    : tr("theme.settings.not.selected"),
+                }}
                 accessibilityState={{ checked: active, disabled: busy }}
                 aria-checked={active}
                 disabled={busy}
@@ -121,7 +134,7 @@ export function ThemeSettings() {
                   }}
                 >
                   {label}
-                  {active ? " · 선택됨" : ""}
+                  {active ? tr("theme.settings.selected.themesettings") : ""}
                 </Text>
               </Pressable>
             );
@@ -129,15 +142,21 @@ export function ThemeSettings() {
         </View>
       </Card>
       <Card>
-        <T big>메뉴 컬러 테마</T>
-        <T>버튼과 카드의 강조색을 선택하세요. 선택 즉시 반영하고 저장합니다.</T>
-        <T>현재 색상: {selected}</T>
+        <T big>{tr("theme.settings.menu.color.theme")}</T>
+        <T>
+          {tr(
+            "theme.settings.choose.the.accent.color.for.buttons.and.cards.changes",
+          )}
+        </T>
+        <T>{tr("theme.currentColor", { color: selected })}</T>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
           {themeColors.map((color) => (
             <Pressable
-              key={color}
+              key={tr(`theme.colors.${color}`)}
               accessibilityRole="radio"
-              accessibilityLabel={`${color} 테마`}
+              accessibilityLabel={tr("theme.colorOption", {
+                color: color,
+              })}
               accessibilityState={{
                 checked: selected === color,
                 disabled: busy,
@@ -201,7 +220,7 @@ export function ThemeSettings() {
                   fontWeight: selected === color ? "800" : "500",
                 }}
               >
-                {color}
+                {tr(`theme.colors.${color}`)}
               </Text>
             </Pressable>
           ))}

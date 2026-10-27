@@ -1,3 +1,4 @@
+import { isLocale, type Locale } from "../i18n/core";
 export const themeColors = [
   "red",
   "blue",
@@ -18,12 +19,14 @@ export function normalizeThemeColor(value: unknown): ThemeColor {
     : "green";
 }
 export interface AppSettings {
+  language: Locale | null;
   backgroundTheme: BackgroundTheme;
   themeColor: ThemeColor;
   soundEnabled: boolean;
   vibrationEnabled: boolean;
 }
 export const defaultSettings = (): AppSettings => ({
+  language: null,
   backgroundTheme: "light",
   themeColor: "green",
   soundEnabled: true,
@@ -33,6 +36,7 @@ export function normalizeSettings(
   value?: Partial<AppSettings> | null,
 ): AppSettings {
   return {
+    language: isLocale(value?.language) ? value.language : null,
     backgroundTheme: normalizeBackgroundTheme(value?.backgroundTheme),
     themeColor: normalizeThemeColor(value?.themeColor),
     soundEnabled:

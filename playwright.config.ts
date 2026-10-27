@@ -5,6 +5,7 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:8081",
     channel: "chrome",
+    locale: "ko-KR",
     viewport: { width: 390, height: 844 },
   },
   webServer: {

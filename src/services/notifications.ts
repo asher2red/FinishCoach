@@ -1,3 +1,5 @@
+import { message, type Message, formatRaw, resolveLocale } from "../i18n/core";
+import { getLocales } from "expo-localization";
 import * as Notifications from "expo-notifications";
 import { AndroidImportance, IosAuthorizationStatus } from "expo-notifications";
 import { Platform } from "react-native";
@@ -17,7 +19,31 @@ Notifications.setNotificationHandler({
 async function prepareChannel(settings: AppSettings) {
   if (Platform.OS === "android")
     await Notifications.setNotificationChannelAsync(channelId(settings), {
-      name: `루틴 · 소리 ${settings.soundEnabled ? "켬" : "끔"} · 진동 ${settings.vibrationEnabled ? "켬" : "끔"}`,
+      name: formatRaw(
+        resolveLocale(
+          settings.language,
+          getLocales().map((l) => l.languageTag),
+        ),
+        "notifications.channelName",
+        {
+          sound: formatRaw(
+            resolveLocale(
+              settings.language,
+              getLocales().map((l) => l.languageTag),
+            ),
+            settings.soundEnabled ? "notifications.on" : "notifications.off",
+          ),
+          vibration: formatRaw(
+            resolveLocale(
+              settings.language,
+              getLocales().map((l) => l.languageTag),
+            ),
+            settings.vibrationEnabled
+              ? "notifications.on"
+              : "notifications.off",
+          ),
+        },
+      ),
       importance: AndroidImportance.DEFAULT,
       sound: settings.soundEnabled ? "default" : null,
       enableVibrate: settings.vibrationEnabled,
@@ -28,17 +54,21 @@ async function prepareChannel(settings: AppSettings) {
 function allows(p: Notifications.NotificationPermissionsStatus) {
   return p.granted || p.ios?.status === IosAuthorizationStatus.PROVISIONAL;
 }
-export async function requestPermission(): Promise<string> {
+export async function requestPermission(): Promise<Message> {
   await prepareChannel(currentSettings);
   const result = await Notifications.requestPermissionsAsync();
   if (!allows(result))
-    return "알림 권한이 거부되었습니다. 기기 설정에서 변경할 수 있습니다.";
+    return message(
+      "notifications.notifications.are.blocked.you.can.change.this.in.device",
+    );
   if (
     Platform.OS === "android" &&
     !(await Notifications.getExactAlarmPermissionsAsync()).granted
   )
-    return "알림이 허용되었습니다. 기기 절전 정책에 따라 전달이 늦어질 수 있습니다.";
-  return "알림이 허용되었습니다.";
+    return message(
+      "notifications.notifications.are.allowed.device.power.saving.settings.may.delay",
+    );
+  return message("notifications.notifications.are.allowed");
 }
 export function reconcileNotifications(s: State): Promise<void> {
   const plan = notificationPlan(s);

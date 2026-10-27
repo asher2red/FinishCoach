@@ -1,3 +1,9 @@
+import {
+  LocalizedError,
+  message,
+  errorMessage,
+  type AppMessage,
+} from "../i18n/core";
 import React, {
   createContext,
   useCallback,
@@ -15,8 +21,8 @@ interface Store {
   state: State;
   ready: boolean;
   busy: boolean;
-  error: string;
-  notice: string;
+  error: AppMessage;
+  notice: AppMessage;
   mutate: (
     fn: (s: State) => void,
     options?: { syncNotifications?: boolean },
@@ -29,8 +35,8 @@ export function Provider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState(emptyState),
     [ready, setReady] = useState(false),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
-    [notice, setNotice] = useState("");
+    [error, setError] = useState<AppMessage>(""),
+    [notice, setNotice] = useState<AppMessage>("");
   const current = useRef(state),
     initialized = useRef(false),
     queue = useRef(Promise.resolve());
@@ -44,14 +50,15 @@ export function Provider({ children }: { children: React.ReactNode }) {
         e instanceof Error ? e.name : "Error",
       );
       setNotice(
-        "데이터는 저장되었습니다. 알림 예약에 실패했습니다. 앱을 다시 열면 재시도합니다.",
+        message("errors.your.data.was.saved.but.notifications.could.not.be"),
       );
     }
   }, []);
   const reload = useCallback(async () => {
     try {
       const s = (await repository.load()) ?? emptyState();
-      if (s.version !== 1) throw new Error("지원되지 않는 데이터 버전입니다.");
+      if (s.version !== 1)
+        throw new LocalizedError("errors.this.data.version.is.not.supported");
       generate(s);
       await repository.commit(s);
       current.current = s;
@@ -65,7 +72,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
         "Storage initialization failed",
         e instanceof Error ? e.name : "Error",
       );
-      setError(e instanceof Error ? e.message : "저장소를 열 수 없습니다.");
+      setError(errorMessage(e, "errors.unable.to.open.storage"));
     }
   }, [sync]);
   const mutate = useCallback(
@@ -95,9 +102,10 @@ export function Provider({ children }: { children: React.ReactNode }) {
               e instanceof Error ? e.name : "Error",
             );
             setError(
-              e instanceof Error
-                ? e.message
-                : "저장하지 못했습니다. 다시 시도하세요.",
+              errorMessage(
+                e,
+                "errors.couldn.t.save.your.changes.please.try.again",
+              ),
             );
             resolve(false);
           } finally {

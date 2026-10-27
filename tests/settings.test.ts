@@ -13,6 +13,7 @@ it("defaults legacy and invalid colors to green without changing notification pr
   expect(
     normalizeSettings({ soundEnabled: false, vibrationEnabled: false }),
   ).toEqual({
+    language: null,
     backgroundTheme: "light",
     themeColor: "green",
     soundEnabled: false,

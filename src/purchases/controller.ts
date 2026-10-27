@@ -1,3 +1,4 @@
+import { message as msg, LocalizedError, type AppMessage } from "../i18n/core";
 export interface Product {
   id: string;
   title: string;
@@ -9,7 +10,7 @@ export interface PurchaseInfo {
   requestDate: string;
 }
 export interface PurchaseClient {
-  issue: string | null;
+  issue: AppMessage | null;
   initialize(): Promise<void>;
   info(): Promise<PurchaseInfo>;
   product(): Promise<Product>;
@@ -34,24 +35,31 @@ export interface PurchaseState {
   initialized: boolean;
   pending: boolean;
   sandbox: boolean | null;
-  message: string;
+  message: AppMessage;
 }
 function errorCode(error: unknown) {
   return error && typeof error === "object" && "code" in error
     ? String(error.code)
     : "";
 }
-function errorText(error: unknown) {
+function errorText(error: unknown): AppMessage {
+  if (error instanceof LocalizedError) return error.descriptor;
   const code = errorCode(error);
   if (code === "10" || code === "35")
-    return "네트워크에 연결할 수 없습니다. 구매 상태를 단정하지 않고 기존 확인 결과를 유지합니다.";
+    return msg(
+      "purchases.unable.to.connect.your.last.verified.purchase.status.has",
+    );
   if (code === "6")
-    return "스토어에 이미 구매한 상품이 있습니다. 구매 복원을 실행해주세요.";
+    return msg("purchases.this.item.is.already.owned.in.the.store.restore");
   if (["11", "23", "5"].includes(code))
-    return "결제 상품 설정을 확인해주세요. RevenueCat 키·offering·상품과 스토어 테스트 계정 연결이 필요합니다.";
+    return msg(
+      "purchases.check.the.revenuecat.key.offering.product.and.store.test",
+    );
   if (error instanceof Error && error.name === "PurchaseConfigurationError")
     return error.message;
-  return "결제 정보를 처리하지 못했습니다. 연결과 스토어 계정을 확인한 뒤 다시 시도해주세요.";
+  return msg(
+    "purchases.unable.to.process.purchase.information.check.your.connection.and",
+  );
 }
 export class PurchaseController {
   private state: PurchaseState;
@@ -66,7 +74,9 @@ export class PurchaseController {
       initialized: false,
       pending: false,
       sandbox: null,
-      message: client.issue ?? "스토어 상품과 구매 상태를 불러오는 중입니다.",
+      message:
+        client.issue ??
+        msg("purchases.loading.the.store.product.and.purchase.status"),
     };
   }
   getSnapshot = () => this.state;
@@ -122,7 +132,7 @@ export class PurchaseController {
     this.locked = true;
     this.update({
       status: "loading",
-      message: "스토어 상품과 구매 상태를 확인하고 있습니다.",
+      message: msg("purchases.checking.the.store.product.and.purchase.status"),
     });
     try {
       await this.client.initialize();
@@ -135,8 +145,8 @@ export class PurchaseController {
               status: this.status(),
               message:
                 this.state.ownership === "owned"
-                  ? "테스트 구매가 확인되었습니다."
-                  : "최신 구매 상태를 확인했습니다.",
+                  ? msg("purchases.your.test.purchase.has.been.verified")
+                  : msg("purchases.your.purchase.status.is.up.to.date"),
             });
         });
       const [info, product] = await Promise.allSettled([
@@ -158,10 +168,14 @@ export class PurchaseController {
         message: error
           ? errorText(error)
           : this.state.ownership === "owned"
-            ? "구매 완료 상태를 확인했습니다. 기존 앱 기능은 변경되지 않습니다."
+            ? msg(
+                "purchases.your.purchase.has.been.verified.existing.app.features.are",
+              )
             : this.state.pending
-              ? "결제 승인 대기 중입니다. 승인 전에는 구매 완료로 처리하지 않습니다."
-              : "스토어에서 불러온 가격으로 테스트 구매할 수 있습니다.",
+              ? msg(
+                  "purchases.awaiting.payment.approval.the.purchase.will.not.be.marked",
+                )
+              : msg("purchases.you.can.test.a.purchase.at.the.price.returned"),
       });
     } catch (error) {
       this.update({ status: "error", message: errorText(error) });
@@ -174,7 +188,7 @@ export class PurchaseController {
     this.locked = true;
     this.update({
       status: "purchasing",
-      message: "스토어 결제창에서 진행해주세요.",
+      message: msg("purchases.continue.in.the.store.payment.sheet"),
     });
     try {
       this.applyInfo(await this.client.info());
@@ -183,15 +197,17 @@ export class PurchaseController {
       if (this.state.ownership === "owned")
         this.update({
           status: "purchased",
-          message:
-            "테스트 구매가 확인되었습니다. 기존 앱 기능은 변경되지 않습니다.",
+          message: msg(
+            "purchases.your.test.purchase.has.been.verified.existing.app.features",
+          ),
         });
       else
         this.update({
           status: "pending",
           pending: true,
-          message:
-            "구매 결과를 받았지만 권한 확인 대기 중입니다. 구매 상태를 다시 확인해주세요.",
+          message: msg(
+            "purchases.the.transaction.was.received.but.access.is.awaiting.verification",
+          ),
         });
     } catch (error) {
       const cancelled =
@@ -212,9 +228,11 @@ export class PurchaseController {
                 : "error",
         pending: pending || this.state.pending,
         message: cancelled
-          ? "구매를 취소했습니다."
+          ? msg("purchases.purchase.cancelled")
           : pending
-            ? "결제 승인 대기 중입니다. 승인 후 구매 상태를 확인해주세요."
+            ? msg(
+                "purchases.awaiting.payment.approval.check.your.purchase.status.after.approval",
+              )
             : errorText(error),
       });
     } finally {
@@ -226,7 +244,7 @@ export class PurchaseController {
     this.locked = true;
     this.update({
       status: "restoring",
-      message: "스토어 계정의 구매 내역을 복원하고 있습니다.",
+      message: msg("purchases.restoring.purchases.from.your.store.account"),
     });
     try {
       this.applyInfo(await this.client.restore());
@@ -234,8 +252,8 @@ export class PurchaseController {
         status: this.status(),
         message:
           this.state.ownership === "owned"
-            ? "구매 복원이 완료됐습니다."
-            : "이 계정에서 복원할 테스트 구매를 찾지 못했습니다.",
+            ? msg("purchases.purchases.restored")
+            : msg("purchases.no.test.purchase.was.found.to.restore.for.this"),
       });
     } catch (error) {
       const cancelled =
@@ -246,7 +264,9 @@ export class PurchaseController {
           error.userCancelled === true);
       this.update({
         status: cancelled ? "cancelled" : "error",
-        message: cancelled ? "구매 복원을 취소했습니다." : errorText(error),
+        message: cancelled
+          ? msg("purchases.purchase.restoration.cancelled")
+          : errorText(error),
       });
     } finally {
       this.locked = false;

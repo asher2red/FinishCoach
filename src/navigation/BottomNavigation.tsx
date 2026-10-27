@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/context";
 import { View, Pressable, Text } from "react-native";
 import { usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,6 +8,7 @@ import { mainMenu, navigateToPage } from "./menu";
 
 export const BOTTOM_MENU_HEIGHT = 56;
 export function BottomNavigation() {
+  const { t } = useI18n();
   const path = usePathname();
   const c = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -37,7 +39,7 @@ export function BottomNavigation() {
               key={item.href}
               testID={`bottom-menu-${item.icon}`}
               accessibilityRole="button"
-              accessibilityLabel={item.label}
+              accessibilityLabel={t(item.labelKey)}
               accessibilityState={{ selected }}
               onPress={() => {
                 if (!selected) navigateToPage(item.label);
@@ -67,7 +69,7 @@ export function BottomNavigation() {
                   flexShrink: 1,
                 }}
               >
-                {item.label}
+                {t(item.labelKey)}
               </Text>
             </Pressable>
           );

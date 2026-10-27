@@ -1,7 +1,13 @@
 import React, { useRef, useEffect, useContext } from "react";
 import type { WheelProps } from "./Wheel";
 import { Theme } from "./design";
-export default function Wheel({ label, values, value, onChange }: WheelProps) {
+export default function Wheel({
+  label,
+  values,
+  value,
+  onChange,
+  displayValue = (value) => value,
+}: WheelProps) {
   const c = useContext(Theme),
     ref = useRef<HTMLDivElement>(null);
   const programmatic = useRef(true);
@@ -73,7 +79,7 @@ export default function Wheel({ label, values, value, onChange }: WheelProps) {
         {values.map((v, i) => (
           <div
             id={`${label}-${v}`}
-            key={v}
+            key={displayValue(v)}
             role="option"
             aria-selected={v === value}
             onClick={() => select(i)}
@@ -89,7 +95,7 @@ export default function Wheel({ label, values, value, onChange }: WheelProps) {
               cursor: "pointer",
             }}
           >
-            {v}
+            {displayValue(v)}
           </div>
         ))}
         <div style={{ height: 88 }} />

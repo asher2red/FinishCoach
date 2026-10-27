@@ -1,12 +1,15 @@
+import { message, type Message } from "../i18n/core";
 import { State } from "../domain/model";
 let timers: ReturnType<typeof setTimeout>[] = [];
-export async function requestPermission(): Promise<string> {
+export async function requestPermission(): Promise<Message> {
   if (typeof Notification === "undefined")
-    return "이 브라우저는 알림을 지원하지 않습니다.";
+    return message("notifications.this.browser.does.not.support.notifications");
   const result = await Notification.requestPermission();
   return result === "granted"
-    ? "알림 허용됨 · 이 페이지가 열려 있을 때만 전달됩니다."
-    : "알림이 허용되지 않았습니다.";
+    ? message(
+        "notifications.notifications.allowed.delivered.only.while.this.page.is.open",
+      )
+    : message("notifications.notifications.are.not.allowed");
 }
 export async function reconcileNotifications(s: State): Promise<void> {
   timers.forEach(clearTimeout);

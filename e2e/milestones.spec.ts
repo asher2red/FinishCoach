@@ -36,7 +36,9 @@ test("milestone drafts batch-save, retry failures, edit, reorder, delete and can
   });
   const save = page.getByRole("button", { name: "프로젝트 저장", exact: true });
   await save.click();
-  await expect(page.getByText("검증용 저장 실패").last()).toBeVisible();
+  await expect(
+    page.getByText("저장하지 못했습니다. 다시 시도하세요.").last(),
+  ).toBeVisible();
   await expect(page.getByLabel("마일스톤 3", { exact: true })).toHaveValue(
     "단계 3",
   );

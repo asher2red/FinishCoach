@@ -1,3 +1,4 @@
+import { LocalizedError } from "../i18n/core";
 import { randomUUID } from "expo-crypto";
 import { AppSettings, defaultSettings } from "./settings";
 export type Frequency = "daily" | "weekdays" | "weekly" | "once";
@@ -87,29 +88,34 @@ export function weekStart(date: string, firstDay = 1) {
   return addDays(date, -((d.getDay() - firstDay + 7) % 7));
 }
 export function validateRoutine(r: Routine) {
-  if (!r.title.trim()) throw new Error("활동 이름을 입력하세요.");
+  if (!r.title.trim())
+    throw new LocalizedError("errors.enter.an.activity.name");
   if (
     !/^\d{4}-\d{2}-\d{2}$/.test(r.startDate) ||
     Number.isNaN(dateAt(r.startDate).getTime()) ||
     localDate(dateAt(r.startDate)) !== r.startDate
   )
-    throw new Error("시작일을 YYYY-MM-DD 형식으로 입력하세요.");
+    throw new LocalizedError(
+      "errors.enter.the.start.date.in.yyyy.mm.dd.format",
+    );
   if (
     r.endDate &&
     (Number.isNaN(dateAt(r.endDate).getTime()) ||
       localDate(dateAt(r.endDate)) !== r.endDate ||
       r.endDate < r.startDate)
   )
-    throw new Error("종료일은 시작일 이후의 올바른 날짜여야 합니다.");
+    throw new LocalizedError("errors.choose.a.valid.end.date.on.or.after.the");
   if (r.reminderTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(r.reminderTime))
-    throw new Error("알림 시각은 HH:mm 형식입니다.");
+    throw new LocalizedError(
+      "errors.enter.the.notification.time.in.hh.mm.format",
+    );
   if (
     r.durationMinutes !== null &&
     (!Number.isFinite(r.durationMinutes) || r.durationMinutes < 0)
   )
-    throw new Error("소요 시간을 확인하세요.");
+    throw new LocalizedError("errors.check.the.duration");
   if (r.frequencyType === "weekdays" && !r.preferredDays.length)
-    throw new Error("요일을 선택하세요.");
+    throw new LocalizedError("errors.select.at.least.one.weekday");
   if (
     r.frequencyType === "weekly" &&
     (!r.weeklyTarget ||
@@ -117,19 +123,21 @@ export function validateRoutine(r: Routine) {
       r.weeklyTarget < 1 ||
       r.weeklyTarget > 7)
   )
-    throw new Error("주간 목표는 1~7회입니다.");
+    throw new LocalizedError("errors.choose.a.weekly.goal.between.1.and.7");
 }
 
 export function parseLocalDateTime(value: string): string {
   const match = /^(\d{4}-\d{2}-\d{2}) ([01]\d|2[0-3]):([0-5]\d)$/.exec(value);
   if (!match)
-    throw new Error("완료 시각을 YYYY-MM-DD HH:mm 형식으로 입력하세요.");
+    throw new LocalizedError(
+      "errors.enter.the.completion.time.in.yyyy.mm.dd.hh",
+    );
   const d = dateAt(match[1], `${match[2]}:${match[3]}`);
   if (
     Number.isNaN(d.getTime()) ||
     localDate(d) !== match[1] ||
     d.getHours() !== Number(match[2])
   )
-    throw new Error("존재하지 않는 현지 날짜 또는 시각입니다.");
+    throw new LocalizedError("errors.this.local.date.or.time.does.not.exist");
   return d.toISOString();
 }

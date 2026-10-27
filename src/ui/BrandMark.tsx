@@ -1,9 +1,12 @@
+import { useI18n } from "../i18n/context";
 import React, { useContext } from "react";
 import { View, Text } from "react-native";
 import { Image } from "expo-image";
 import { Theme } from "./design";
 
 export function BrandMark() {
+  const { t: tr } = useI18n();
+
   const c = useContext(Theme);
   return (
     <View
@@ -47,7 +50,7 @@ export function BrandMark() {
           Finish Coach
         </Text>
         <Text style={{ color: c.muted, fontSize: 12, lineHeight: 18 }}>
-          오늘도, 더 나은 나를 향해.
+          {tr("brand.mark.a.little.better.every.day")}
         </Text>
       </View>
     </View>

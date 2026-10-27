@@ -1,3 +1,4 @@
+import { LocalizedError } from "../i18n/core";
 import { Project, ProjectMilestone, State, localDate, dateAt } from "./model";
 export function saveProjectWithMilestones(
   s: State,
@@ -7,15 +8,17 @@ export function saveProjectWithMilestones(
   const ids = new Set<string>();
   drafts.forEach((draft, index) => {
     if (!draft.title.trim())
-      throw new Error(`마일스톤 ${index + 1} 이름을 입력하세요.`);
+      throw new LocalizedError("projects.milestones.nameRequired", {
+        number: index + 1,
+      });
     const existing = s.milestones.find((m) => m.id === draft.id);
     if (
       ids.has(draft.id) ||
       draft.projectId !== p.id ||
       (existing && (existing.projectId !== p.id || existing.deletedAt))
     )
-      throw new Error(
-        "마일스톤 목록이 변경되었습니다. 편집 화면을 다시 열어주세요.",
+      throw new LocalizedError(
+        "errors.the.milestone.list.has.changed.reopen.the.editor",
       );
     ids.add(draft.id);
   });
@@ -44,16 +47,16 @@ export function saveProjectWithMilestones(
   });
 }
 export function saveProject(s: State, p: Project) {
-  if (!p.title.trim()) throw new Error("프로젝트 제목을 입력하세요.");
+  if (!p.title.trim()) throw new LocalizedError("errors.enter.a.project.title");
   for (const d of [p.startedAt, ...(p.targetDate ? [p.targetDate] : [])])
     if (
       !/^\d{4}-\d{2}-\d{2}$/.test(d) ||
       Number.isNaN(dateAt(d).getTime()) ||
       localDate(dateAt(d)) !== d
     )
-      throw new Error("프로젝트 날짜를 확인하세요.");
+      throw new LocalizedError("errors.check.the.project.dates");
   if (p.targetDate && p.targetDate < p.startedAt)
-    throw new Error("목표일은 시작일 이후여야 합니다.");
+    throw new LocalizedError("errors.the.target.date.must.be.on.or.after.the");
   const i = s.projects.findIndex((x) => x.id === p.id);
   const next = {
     ...p,
@@ -69,7 +72,7 @@ export function setProjectStatus(
   status: Project["status"],
 ) {
   const p = s.projects.find((x) => x.id === id && !x.deletedAt);
-  if (!p) throw new Error("프로젝트를 찾을 수 없습니다.");
+  if (!p) throw new LocalizedError("errors.the.project.was.not.found");
   if (p.status === status) return;
   p.status = status;
   p.updatedAt = new Date().toISOString();

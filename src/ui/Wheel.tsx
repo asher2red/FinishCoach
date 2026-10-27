@@ -2,13 +2,20 @@ import React, { useRef, useContext } from "react";
 import { View, ScrollView, Pressable, Text } from "react-native";
 import { Theme, T } from "./design";
 export interface WheelProps {
+  displayValue?: (value: string) => string;
   label: string;
   values: string[];
   value: string;
   onChange: (value: string) => void;
 }
 const height = 44;
-export default function Wheel({ label, values, value, onChange }: WheelProps) {
+export default function Wheel({
+  label,
+  values,
+  value,
+  onChange,
+  displayValue = (value) => value,
+}: WheelProps) {
   const c = useContext(Theme),
     scroll = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const programmatic = useRef(true);
@@ -66,7 +73,7 @@ export default function Wheel({ label, values, value, onChange }: WheelProps) {
           accessibilityRole="adjustable"
           accessibilityLabel={label}
           accessibilityValue={{
-            text: value,
+            text: displayValue(value),
             min: 0,
             max: values.length - 1,
             now: index,
@@ -86,9 +93,9 @@ export default function Wheel({ label, values, value, onChange }: WheelProps) {
         >
           {values.map((v, i) => (
             <Pressable
-              key={v}
+              key={displayValue(v)}
               accessibilityRole="button"
-              accessibilityLabel={`${label} ${v}`}
+              accessibilityLabel={`${label} ${displayValue(v)}`}
               accessibilityState={{ selected: v === value }}
               onPress={() => select(i)}
               style={{ height, alignItems: "center", justifyContent: "center" }}
@@ -100,7 +107,7 @@ export default function Wheel({ label, values, value, onChange }: WheelProps) {
                   fontSize: v === value ? 22 : 18,
                 }}
               >
-                {v}
+                {displayValue(v)}
               </Text>
             </Pressable>
           ))}

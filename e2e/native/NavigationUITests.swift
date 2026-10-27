@@ -14,11 +14,61 @@ final class NavigationUITests: XCTestCase {
     XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 10), .completed)
   }
 
+  func selectKorean(_ app: XCUIApplication) {
+    app.buttons["bottom-menu-settings"].tap()
+    let choice = app.buttons["한국어"].firstMatch
+    XCTAssertTrue(choice.waitForExistence(timeout: 10))
+    choice.tap()
+    app.buttons["bottom-menu-today"].tap()
+    XCTAssertTrue(app.staticTexts["오늘, 하나씩 끝내볼까요?"].waitForExistence(timeout: 10))
+  }
+
+  func testLocalizationPersistenceAndEnglishMenus() {
+    continueAfterFailure = false
+    XCUIDevice.shared.orientation = .portrait
+    let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
+    app.launch()
+    selectKorean(app)
+    app.buttons["bottom-menu-settings"].tap()
+    app.buttons["English"].firstMatch.tap()
+    let english = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Today"), object: app.buttons["bottom-menu-today"])
+    XCTAssertEqual(XCTWaiter.wait(for: [english], timeout: 10), .completed)
+    let ids = ["today", "routines", "history", "statistics", "projects", "settings"]
+    let names = ["Today", "Routines", "History", "Statistics", "Projects", "Settings"]
+    for (index, id) in ids.enumerated() {
+      let button = app.buttons["bottom-menu-\(id)"]
+      XCTAssertEqual(button.label, names[index])
+      XCTAssertTrue(button.isHittable)
+      XCTAssertGreaterThanOrEqual(button.frame.width, 44)
+      XCTAssertGreaterThanOrEqual(button.frame.height, 48)
+      button.tap()
+    }
+    app.terminate()
+    app.launch()
+    let restored = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Today"), object: app.buttons["bottom-menu-today"])
+    XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 10), .completed)
+    app.buttons["bottom-menu-routines"].tap()
+    app.buttons["＋ Create routine"].tap()
+    XCTAssertTrue(app.textFields["Activity name (you can add your own)"].exists)
+    let scroll = app.descendants(matching: .any)["editor-scroll"].firstMatch
+    let time = app.buttons["Select Notification and target time"]
+    for _ in 0..<8 { if time.isHittable { break }; scroll.swipeUp() }
+    XCTAssertTrue(time.isHittable)
+    time.tap()
+    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@", "7:30", "AM")).firstMatch.waitForExistence(timeout: 5))
+    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@", "8:15", "PM")).firstMatch.exists)
+    app.buttons["Cancel"].firstMatch.tap()
+    for _ in 0..<8 { if app.buttons["Close"].firstMatch.isHittable { break }; scroll.swipeDown() }
+    app.buttons["Close"].firstMatch.tap()
+    selectKorean(app)
+  }
+
   func testPurchaseSetupWithoutCredentials() {
     continueAfterFailure = false
     XCUIDevice.shared.orientation = .portrait
     let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
     app.launch()
+    selectKorean(app)
     app.buttons["bottom-menu-settings"].tap()
     let scroll = app.descendants(matching: .any)["screen-scroll"].firstMatch
     let title = app.staticTexts["인앱 결제 테스트"].firstMatch
@@ -45,6 +95,7 @@ final class NavigationUITests: XCTestCase {
     XCUIDevice.shared.orientation = .portrait
     let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
     app.launch()
+    selectKorean(app)
     app.buttons["bottom-menu-projects"].tap()
     app.buttons["＋ 프로젝트 만들기"].tap()
     let scroll = app.descendants(matching: .any)["editor-scroll"].firstMatch
@@ -90,6 +141,7 @@ final class NavigationUITests: XCTestCase {
     XCUIDevice.shared.orientation = .portrait
     let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
     app.launch()
+    selectKorean(app)
     app.buttons["bottom-menu-settings"].tap()
     let scroll = app.descendants(matching: .any)["screen-scroll"].firstMatch
     let dark = app.descendants(matching: .any)["background-theme-dark"].firstMatch
@@ -103,6 +155,7 @@ final class NavigationUITests: XCTestCase {
     shot("background-dark-today-ios", app)
     app.terminate()
     app.launch()
+    selectKorean(app)
     app.buttons["bottom-menu-settings"].tap()
     assertChoice("background-theme-dark", app)
     let light = app.descendants(matching: .any)["background-theme-light"].firstMatch
@@ -116,6 +169,7 @@ final class NavigationUITests: XCTestCase {
     XCUIDevice.shared.orientation = .portrait
     let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
     app.launch()
+    selectKorean(app)
     let ids = ["today", "routines", "history", "statistics", "projects", "settings"]
     let titles = ["오늘, 하나씩 끝내볼까요?", "꾸준함을 만드는 루틴", "쌓여가는 나의 실행", "실행으로 확인하는 성장", "끝까지 가는 프로젝트", "나에게 맞는 설정"]
     let bar = app.otherElements["bottom-navigation"]

@@ -1,3 +1,4 @@
+import { message as msg, LocalizedError, type AppMessage } from "../i18n/core";
 import { Platform } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import type { CustomerInfo, PurchasesPackage } from "react-native-purchases";
@@ -21,8 +22,11 @@ const expectedId =
     : purchaseConfig.productIds.android;
 let initialization: Promise<void> | undefined;
 let sdk: typeof import("react-native-purchases") | undefined;
-function configError(message: string): Error {
-  const error = new Error(message);
+function configError(value: AppMessage): Error {
+  const error =
+    typeof value === "string"
+      ? new Error(value)
+      : new LocalizedError(value.key, value.params);
   error.name = "PurchaseConfigurationError";
   return error;
 }
@@ -56,7 +60,9 @@ async function getPackage(): Promise<PurchasesPackage> {
   );
   if (!item || item.product.identifier !== expectedId)
     throw configError(
-      "RevenueCat의 test offering, test_purchase 패키지와 플랫폼 상품 ID 연결을 확인해주세요.",
+      msg(
+        "purchases.check.the.revenuecat.test.offering.test.purchase.package.and",
+      ),
     );
   const product = item.product;
   if (
@@ -65,14 +71,16 @@ async function getPackage(): Promise<PurchasesPackage> {
       product.productType !== sdk!.PRODUCT_TYPE.NON_CONSUMABLE)
   )
     throw configError(
-      "일회성 비소모성 상품 설정이 필요합니다. 구독·소모성 상품은 구매할 수 없습니다.",
+      msg(
+        "purchases.configure.a.non.consumable.one.time.product.subscriptions.and",
+      ),
     );
   if (product.currencyCode === "USD" && Math.abs(product.price - 0.99) > 0.0001)
-    throw configError(
-      "USD 기준 가격이 $0.99가 아닙니다. 스토어 가격 설정을 확인해주세요.",
-    );
+    throw configError(msg("purchases.the.usd.price.is.not.0.99.check.your"));
   if (!product.priceString)
-    throw configError("스토어에서 상품 가격을 받지 못했습니다.");
+    throw configError(
+      msg("purchases.the.store.did.not.return.a.product.price"),
+    );
   return item;
 }
 export const purchaseClient: PurchaseClient = {

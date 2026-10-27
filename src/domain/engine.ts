@@ -1,3 +1,4 @@
+import { LocalizedError } from "../i18n/core";
 import {
   State,
   Routine,
@@ -87,13 +88,15 @@ export function complete(
   occurrenceId: string | null = null,
 ) {
   const r = s.routines.find((x) => x.id === routineId && !x.deletedAt);
-  if (!r || !r.isActive) throw new Error("활성 루틴을 찾을 수 없습니다.");
+  if (!r || !r.isActive)
+    throw new LocalizedError("errors.no.active.routine.was.found");
   const o = occurrenceId
     ? s.occurrences.find(
         (x) => x.id === occurrenceId && x.routineId === routineId,
       )
     : undefined;
-  if (occurrenceId && !o) throw new Error("예정 항목이 없습니다.");
+  if (occurrenceId && !o)
+    throw new LocalizedError("errors.the.scheduled.activity.was.not.found");
   if (o?.status === "completed") return;
   if (
     !o &&
@@ -123,7 +126,7 @@ export function complete(
 }
 export function undo(s: State, logId: string) {
   const log = s.logs.find((x) => x.id === logId);
-  if (!log) throw new Error("기록을 찾을 수 없습니다.");
+  if (!log) throw new LocalizedError("errors.the.record.was.not.found");
   log.deletedAt = new Date().toISOString();
   log.updatedAt = log.deletedAt;
   const o = s.occurrences.find((x) => x.completedLogId === logId);

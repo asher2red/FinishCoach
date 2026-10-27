@@ -1,76 +1,100 @@
+import { message as msg } from "../i18n/core";
+import { useI18n } from "../i18n/context";
 import React from "react";
 import { View } from "react-native";
 import { usePurchase } from "../purchases/context";
 import { Button, Card, Row, T } from "./design";
 const states = {
-  disabled: "설정 필요",
-  loading: "불러오는 중",
-  ready: "구매 가능",
-  purchasing: "구매 처리 중",
-  restoring: "구매 복원 중",
-  purchased: "구매 완료",
-  pending: "구매 대기",
-  cancelled: "구매 취소",
-  error: "확인 오류",
+  disabled: msg("purchase.settings.setup.required"),
+  loading: msg("purchase.settings.loading"),
+  ready: msg("purchase.settings.ready.to.purchase"),
+  purchasing: msg("purchase.settings.processing.purchase"),
+  restoring: msg("purchase.settings.restoring.purchases"),
+  purchased: msg("purchase.settings.purchased"),
+  pending: msg("purchase.settings.purchase.pending"),
+  cancelled: msg("purchase.settings.purchase.cancelled"),
+  error: msg("purchase.settings.unable.to.verify"),
 };
 export function PurchaseSettings() {
+  const { t: tr, text } = useI18n();
+
   const { state, controller } = usePurchase();
   const busy = controller.isBusy();
   return (
     <Card>
-      <T big>인앱 결제 테스트</T>
-      <T>{state.product?.title || "Finish Coach 테스트 구매"}</T>
-      <T>일회성 테스트 상품입니다. 기존 앱 기능은 유료화되지 않습니다.</T>
+      <T big>{tr("purchase.settings.in.app.purchase.test")}</T>
       <T>
-        Apple Sandbox 또는 Google 라이선스 테스트 계정으로 진행하세요. 결제창의
-        테스트 표시·결제 수단을 확인하세요.
+        {state.product?.title ||
+          tr("purchase.settings.finish.coach.test.purchase")}
+      </T>
+      <T>
+        {tr(
+          "purchase.settings.a.one.time.test.product.existing.app.features.remain",
+        )}
+      </T>
+      <T>
+        {tr(
+          "purchase.settings.use.an.apple.sandbox.or.google.license.tester.account",
+        )}
       </T>
       <View accessibilityLiveRegion="polite">
-        <T>현재 상태: {states[state.status]}</T>
         <T>
-          구매 확인:{" "}
-          {state.ownership === "owned"
-            ? "구매 완료"
-            : state.ownership === "not_owned"
-              ? "미구매"
-              : "아직 확인하지 못함"}
+          {tr("purchases.statusLabel", { value: text(states[state.status]) })}
         </T>
-        <T>{state.message}</T>
+        <T>
+          {tr("purchases.ownershipLabel", {
+            value:
+              state.ownership === "owned"
+                ? tr("purchase.settings.purchased")
+                : state.ownership === "not_owned"
+                  ? tr("purchase.settings.not.purchased")
+                  : tr("purchase.settings.not.yet.verified"),
+          })}
+        </T>
+        <T>{text(state.message)}</T>
         {state.sandbox !== null && (
           <T>
-            확인된 구매 환경:{" "}
-            {state.sandbox ? "Sandbox 테스트" : "실제 스토어 구매"}
+            {tr("purchases.environmentLabel", {
+              value: state.sandbox
+                ? tr("purchase.settings.sandbox.test")
+                : tr("purchase.settings.live.store.purchase"),
+            })}
           </T>
         )}
       </View>
-      {state.product && <T>스토어 가격: {state.product.price}</T>}
+      {state.product && (
+        <T>{tr("purchases.priceLabel", { price: state.product!.price })}</T>
+      )}
       <Row>
         <Button
           title={
             state.ownership === "owned"
-              ? "구매 완료"
+              ? tr("purchase.settings.purchased")
               : state.product
-                ? `테스트 구매 · ${state.product.price}`
-                : "상품 가격 확인 필요"
+                ? tr("purchases.buyAtPrice", {
+                    price: state.product.price,
+                  })
+                : tr("purchase.settings.load.product.price.first")
           }
           selected
           disabled={!controller.canPurchase()}
           onPress={() => void controller.purchase()}
         />
         <Button
-          title="구매 복원"
+          title={tr("purchase.settings.restore.purchases")}
           disabled={!state.initialized || busy}
           onPress={() => void controller.restore()}
         />
         <Button
-          title="구매 상태 다시 확인"
+          title={tr("purchase.settings.refresh.purchase.status")}
           disabled={state.status === "disabled" || busy}
           onPress={() => void controller.refresh()}
         />
       </Row>
       <T>
-        구매 복원은 같은 스토어 계정에서 진행하세요. 익명 사용자 구매는
-        Apple·Google 간 자동 공유되지 않습니다.
+        {tr(
+          "purchase.settings.restore.with.the.same.store.account.anonymous.purchases.are",
+        )}
       </T>
     </Card>
   );

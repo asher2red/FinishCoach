@@ -1,3 +1,4 @@
+import { I18nProvider } from "../i18n/context";
 import { PurchaseProvider } from "../purchases/context";
 import { Stack } from "expo-router";
 import { Provider } from "../data/context";
@@ -41,9 +42,11 @@ function AppFrame() {
 export default function Layout() {
   return (
     <Provider>
-      <PurchaseProvider>
-        <AppFrame />
-      </PurchaseProvider>
+      <I18nProvider>
+        <PurchaseProvider>
+          <AppFrame />
+        </PurchaseProvider>
+      </I18nProvider>
     </Provider>
   );
 }

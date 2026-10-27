@@ -1,3 +1,4 @@
+import { formatRaw, type Locale } from "../i18n/core";
 import { addDays, dateAt, localDate } from "./model";
 export function toClock(time: string) {
   const [hour, minute] = time.split(":").map(Number);
@@ -6,9 +7,25 @@ export function toClock(time: string) {
 export function fromClock(period: string, hour: number, minute: number) {
   return `${String((hour % 12) + (period === "오후" ? 12 : 0)).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
-export function displayTime(time: string) {
+export function displayTime(time: string, locale: Locale = "ko") {
   const c = toClock(time);
-  return `${c.period} ${c.hour}시 ${String(c.minute).padStart(2, "0")}분`;
+  return locale === "ko"
+    ? formatRaw(locale, "time.clock", {
+        period: formatRaw(locale, c.period === "오전" ? "time.am" : "time.pm"),
+        hour: c.hour,
+        minute: String(c.minute).padStart(2, "0"),
+      })
+    : new Intl.DateTimeFormat(locale, {
+        hour: "numeric",
+        minute: "2-digit",
+      }).format(
+        new Date(
+          2020,
+          0,
+          1,
+          ...(time.split(":").map(Number) as [number, number]),
+        ),
+      );
 }
 export function shiftMonth(day: string, amount: number) {
   const d = dateAt(day),

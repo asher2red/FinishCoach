@@ -1,10 +1,15 @@
+import { useI18n } from "../i18n/context";
 import React from "react";
 import { Card, T } from "./design";
 export function PurchaseSettings() {
+  const { t: tr } = useI18n();
+
   return (
     <Card>
-      <T big>인앱 결제 테스트</T>
-      <T>인앱 결제 테스트는 Android/iOS 앱에서 지원합니다.</T>
+      <T big>{tr("purchase.settings.in.app.purchase.test")}</T>
+      <T>
+        {tr("purchases.in.app.purchase.testing.is.available.in.the.android")}
+      </T>
     </Card>
   );
 }

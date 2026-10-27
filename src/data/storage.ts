@@ -1,3 +1,4 @@
+import { LocalizedError } from "../i18n/core";
 import * as SQLite from "expo-sqlite";
 import { Repository } from "./repository";
 import { emptyState, State } from "../domain/model";
@@ -39,7 +40,7 @@ export const repository: Repository = {
     );
     if (!version) return null;
     if (version.version !== 1)
-      throw new Error("지원되지 않는 데이터 버전입니다.");
+      throw new LocalizedError("errors.this.data.version.is.not.supported");
     const s = emptyState();
     const settings = await db.getFirstAsync<{ payload: string }>(
       "SELECT payload FROM app_settings WHERE id=1",

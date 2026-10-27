@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/context";
 import React, { useContext } from "react";
 import { Modal, View, ScrollView, Platform, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,6 +16,8 @@ export function PickerPanel({
   children: React.ReactNode;
   confirmDisabled?: boolean;
 }) {
+  const { t: tr } = useI18n();
+
   const c = useContext(Theme);
   return (
     <Modal
@@ -31,7 +34,7 @@ export function PickerPanel({
         }}
       >
         <Pressable
-          accessibilityLabel="선택기 배경 닫기"
+          accessibilityLabel={tr("picker.panel.close.picker.backdrop")}
           onPress={onCancel}
           style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }}
         />
@@ -53,10 +56,10 @@ export function PickerPanel({
             {children}
             <Row>
               <View style={{ flex: 1 }}>
-                <Button title="취소" onPress={onCancel} />
+                <Button title={tr("common.cancel")} onPress={onCancel} />
               </View>
               <Button
-                title="확인"
+                title={tr("common.confirm")}
                 disabled={confirmDisabled}
                 selected
                 onPress={onConfirm}

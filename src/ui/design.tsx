@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/context";
 import React from "react";
 import {
   View,
@@ -307,9 +308,11 @@ export function Field({
   );
 }
 export function Empty({ text }: { text: string }) {
+  const { t: tr } = useI18n();
+
   return (
     <Card>
-      <T>아직 기록이 없어요</T>
+      <T>{tr("design.no.records.yet")}</T>
       <T>{text}</T>
     </Card>
   );

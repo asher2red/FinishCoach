@@ -1,3 +1,5 @@
+import { weekday } from "../i18n/labels";
+import { useI18n } from "../i18n/context";
 import React, { useMemo, useContext } from "react";
 import { View, Pressable, Text } from "react-native";
 import { State, addDays } from "../domain/model";
@@ -12,19 +14,21 @@ function Bar({
   label: string;
   value: number;
   max: number;
-  unit: string;
+  unit: "count" | "minutes";
 }) {
+  const { count } = useI18n();
+  const valueLabel = count(
+    unit === "count" ? "units.activityCount" : "units.minuteCount",
+    value,
+  );
   const c = useContext(Theme);
   return (
-    <View accessibilityLabel={`${label}: ${value}${unit}`} style={{ gap: 7 }}>
+    <View accessibilityLabel={`${label}: ${valueLabel}`} style={{ gap: 7 }}>
       <Row>
         <View style={{ flex: 1 }}>
           <T>{label}</T>
         </View>
-        <T>
-          {value}
-          {unit}
-        </T>
+        <T>{valueLabel}</T>
       </Row>
       <View style={{ height: 12, borderRadius: 6, backgroundColor: c.soft }}>
         <View
@@ -52,6 +56,8 @@ export function AnalyticsDashboard({
   filter: string;
   onDay: (d: string) => void;
 }) {
+  const { t: tr, locale, number, date: localizedDate, count } = useI18n();
+
   const c = useContext(Theme),
     data = useMemo(
       () => buildAnalytics(state, date, period, filter),
@@ -62,13 +68,24 @@ export function AnalyticsDashboard({
     <View style={{ gap: 18 }}>
       <Row>
         {[
-          [data.currentCount + "회", "이번 주 완료"],
-          [data.currentMinutes + "분", "이번 주 실행 시간"],
           [
-            data.rate === null ? "목표 없음" : data.rate + "%",
-            "이번 주 주간목표 달성률",
+            count("units.activityCount", data.currentCount),
+            tr("analytics.dashboard.completed.this.week"),
           ],
-          [data.activeDays + "일", "조회 주간의 실행일"],
+          [
+            count("units.minuteCount", data.currentMinutes),
+            tr("analytics.dashboard.activity.time.this.week"),
+          ],
+          [
+            data.rate === null
+              ? tr("analytics.dashboard.no.goal")
+              : data.rate + "%",
+            tr("analytics.dashboard.weekly.goal.completion"),
+          ],
+          [
+            count("units.dayCount", data.activeDays),
+            tr("analytics.dashboard.active.days.in.this.week"),
+          ],
         ].map(([value, label]) => (
           <View key={label} style={{ flex: 1, minWidth: 135 }}>
             <Card variant="metric" tone="projects">
@@ -79,18 +96,31 @@ export function AnalyticsDashboard({
         ))}
       </Row>
       <Card>
-        <T big>주간 실행 그래프</T>
+        <T big>{tr("analytics.dashboard.weekly.activity.chart")}</T>
         <T>
           {data.days[0].date} ~ {data.days[6].date}
         </T>
-        <T>횟수 · 진한 막대: 완료 / 옅은 막대: 예정</T>
-        <T>주 N회 목표는 특정 날짜에 배정하지 않습니다.</T>
+        <T>
+          {tr(
+            "analytics.dashboard.count.solid.bars.completed.muted.bars.scheduled",
+          )}
+        </T>
+        <T>
+          {tr(
+            "analytics.dashboard.weekly.goals.are.not.assigned.to.specific.dates",
+          )}
+        </T>
         <View style={{ flexDirection: "row", gap: 4, alignItems: "flex-end" }}>
           {data.days.map((d, i) => (
             <Pressable
               key={d.date}
               accessibilityRole="button"
-              accessibilityLabel={`${d.date} 완료 ${d.count}회 예정 ${d.planned}회 ${d.minutes}분`}
+              accessibilityLabel={tr("stats.dayAccessibility", {
+                date: localizedDate(new Date(d.date + "T12:00:00")),
+                done: number(d.count),
+                planned: number(d.planned),
+                minutes: number(d.minutes),
+              })}
               accessibilityState={{ selected: d.date === date }}
               onPress={() => onDay(d.date)}
               style={{
@@ -107,7 +137,7 @@ export function AnalyticsDashboard({
               }}
             >
               <Text style={{ color: c.text, fontWeight: "700" }}>
-                {d.count}회
+                {number(d.count)}
               </Text>
               <View
                 style={{
@@ -135,7 +165,7 @@ export function AnalyticsDashboard({
                 />
               </View>
               <Text style={{ color: c.text }}>
-                {["월", "화", "수", "목", "금", "토", "일"][i]}
+                {weekday(locale, (i + 1) % 7)}
               </Text>
               <Text style={{ color: c.muted, fontSize: 11 }}>
                 {d.date.slice(5)}
@@ -145,34 +175,56 @@ export function AnalyticsDashboard({
         </View>
         {!data.days.some((d) => d.count) && (
           <T>
-            이 주의 완료 기록이 없습니다. 활동을 완료하면 그래프가 채워집니다.
+            {tr(
+              "analytics.dashboard.no.completed.activities.this.week.complete.an.activity.to",
+            )}
           </T>
         )}
-        <T>날짜 막대를 누르면 해당 날짜의 실제 기록을 확인합니다.</T>
+        <T>
+          {tr("analytics.dashboard.select.a.day.to.view.its.actual.records")}
+        </T>
       </Card>
       <Card>
-        <T big>활동별 완료 횟수</T>
+        <T big>{tr("analytics.dashboard.completions.by.activity")}</T>
         <T>
-          {data.range.from} ~ {addDays(data.range.to, -1)} · 완료 횟수
+          {tr("stats.range", {
+            from: localizedDate(new Date(data.range.from + "T12:00:00")),
+            to: localizedDate(
+              new Date(addDays(data.range.to, -1) + "T12:00:00"),
+            ),
+          })}
         </T>
         {!data.activities.length ? (
-          <T>선택한 기간의 실행 기록이 없습니다.</T>
+          <T>{tr("analytics.dashboard.no.activity.records.for.this.period")}</T>
         ) : (
           data.activities.map((a) => (
             <Bar
               key={a.id}
-              label={a.title}
+              label={
+                state.routines.some((r) => r.id === a.id)
+                  ? a.title
+                  : tr("errors.archived.activity")
+              }
               value={a.count}
               max={Math.max(...data.activities.map((x) => x.count))}
-              unit="회"
+              unit="count"
             />
           ))
         )}
       </Card>
       <Card>
-        <T big>{period === "년" ? "월별" : "주별"} 누적 실행 시간</T>
+        <T big>
+          {tr("stats.durationHeading", {
+            period:
+              period === "년"
+                ? tr("analytics.dashboard.monthly")
+                : tr("analytics.dashboard.weekly"),
+          })}
+        </T>
         <T>
-          기록된 실제 소요 시간만 합산합니다. 미입력 시간은 추정하지 않습니다.
+          {tr(
+            "analytics.dashboard.only.recorded.durations.are.included.missing.durations.are.not",
+          )}
         </T>
         {data.time.map((t) => (
           <Bar
@@ -180,18 +232,22 @@ export function AnalyticsDashboard({
             label={t.label}
             value={t.minutes}
             max={Math.max(...data.time.map((x) => x.minutes))}
-            unit="분"
+            unit="minutes"
           />
         ))}
         {!data.time.some((t) => t.minutes > 0) && (
-          <T>기록된 실행 시간이 없습니다.</T>
+          <T>{tr("analytics.dashboard.no.activity.time.has.been.recorded")}</T>
         )}
       </Card>
       <Card>
-        <T big>주간 목표 달성</T>
-        <T>조회 날짜가 속한 주 · 주 N회 목표가 있는 활성 루틴만 표시합니다.</T>
+        <T big>{tr("analytics.dashboard.weekly.goals")}</T>
+        <T>
+          {tr(
+            "analytics.dashboard.week.of.the.selected.date.active.routines.with.weekly",
+          )}
+        </T>
         {!data.goals.length ? (
-          <T>이 주에 적용되는 주간 목표가 없습니다.</T>
+          <T>{tr("analytics.dashboard.no.weekly.goals.apply.to.this.week")}</T>
         ) : (
           data.goals.map((g) => (
             <View key={g.id} style={{ gap: 5 }}>
@@ -199,11 +255,14 @@ export function AnalyticsDashboard({
                 label={g.title}
                 value={g.done}
                 max={Math.max(g.target, g.done)}
-                unit="회"
+                unit="count"
               />
               <T>
-                {g.done} / 목표 {g.target}회 ·{" "}
-                {Math.round((g.done / g.target) * 100)}%
+                {tr("stats.goalProgress", {
+                  done: number(g.done),
+                  target: number(g.target),
+                  rate: number(Math.round((g.done / g.target) * 100)),
+                })}
               </T>
             </View>
           ))

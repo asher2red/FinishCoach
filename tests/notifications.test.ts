@@ -1,3 +1,4 @@
+import { formatMessage } from "../src/i18n/core";
 import { normalizeSettings } from "../src/domain/settings";
 import { it, expect, vi, beforeEach } from "vitest";
 import {
@@ -44,7 +45,7 @@ it("handles denied permission without blocking storage", async () => {
   mocks.request.mockResolvedValue({ granted: false });
   await reconcileNotifications(emptyState());
   expect(mocks.schedule).not.toHaveBeenCalled();
-  expect(await requestPermission()).toContain("거부");
+  expect(formatMessage(await requestPermission(), "ko")).toContain("거부");
   expect(mocks.channel).toHaveBeenCalled();
 });
 it("schedules only active future planned reminders and cancels disabled schedules", async () => {
@@ -181,4 +182,38 @@ it("uses iOS sound options without pretending to control vibration", async () =>
   const content = mocks.schedule.mock.calls[0][0].content;
   expect(content.sound).toBe(false);
   expect(content).not.toHaveProperty("vibrate");
+});
+
+it("changes channel language without changing reminder identity or delivery", async () => {
+  const state = emptyState();
+  state.settings = { ...normalizeSettings(state.settings), language: "ko" };
+  const routine: Routine = {
+    ...stamp(),
+    title: "내가 쓴 루틴",
+    category: "기타",
+    description: null,
+    frequencyType: "once",
+    weeklyTarget: null,
+    preferredDays: [],
+    durationMinutes: null,
+    reminderTime: "18:00",
+    startDate: addDays(localDate(), 1),
+    endDate: null,
+    isActive: true,
+  };
+  saveRoutine(state, routine);
+  await reconcileNotifications(state);
+  const korean = mocks.schedule.mock.calls.at(-1)![0];
+  const koreanChannel = mocks.channel.mock.calls.at(-1)!;
+  state.settings.language = "en";
+  await reconcileNotifications(state);
+  expect(mocks.schedule.mock.calls.at(-1)![0]).toEqual(korean);
+  expect(korean.content.body).toBe(routine.title);
+  const englishChannel = mocks.channel.mock.calls.at(-1)!;
+  expect(englishChannel[0]).toBe(koreanChannel[0]);
+  expect(englishChannel[1]).toEqual({
+    ...koreanChannel[1],
+    name: expect.any(String),
+  });
+  expect(englishChannel[1].name).not.toBe(koreanChannel[1].name);
 });

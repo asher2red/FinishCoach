@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/context";
 import React, { useState } from "react";
 import { View } from "react-native";
 import { toClock, fromClock, displayTime } from "../domain/pickers";
@@ -17,6 +18,8 @@ export function TimeField({
   onChange: (v: string | null) => void;
   optional?: boolean;
 }) {
+  const { t: tr, locale } = useI18n();
+
   const [open, setOpen] = useState(false),
     [draft, setDraft] = useState("09:00");
   const [revision, setRevision] = useState(0);
@@ -26,8 +29,12 @@ export function TimeField({
     <View style={{ gap: 6 }}>
       <T>{label}</T>
       <Button
-        accessibilityLabel={`${label} 선택`}
-        title={value ? displayTime(value) : "시각 선택 · 알림 없음"}
+        accessibilityLabel={tr("picker.selectField", { label: label })}
+        title={
+          value
+            ? displayTime(value, locale)
+            : tr("time.field.select.time.no.reminder")
+        }
         onPress={() => {
           setCleared(false);
           setDraft(value ?? "09:00");
@@ -43,13 +50,22 @@ export function TimeField({
             setOpen(false);
           }}
         >
-          <T>선택: {cleared ? "알림 없음" : displayTime(draft)}</T>
+          <T>
+            {tr("picker.selected", {
+              value: cleared
+                ? tr("time.field.no.reminder")
+                : displayTime(draft, locale),
+            })}
+          </T>
           {!cleared && (
             <Row>
               <Wheel
                 key={`period-${revision}`}
-                label="오전·오후"
+                label={tr("time.field.am.pm")}
                 values={["오전", "오후"]}
+                displayValue={(value) =>
+                  value === "오전" ? tr("time.am") : tr("time.pm")
+                }
                 value={clock.period}
                 onChange={(period) =>
                   setDraft((d) => {
@@ -60,7 +76,7 @@ export function TimeField({
               />
               <Wheel
                 key={`hour-${revision}`}
-                label="시"
+                label={tr("time.field.hour")}
                 values={hours}
                 value={String(clock.hour)}
                 onChange={(hour) =>
@@ -72,7 +88,7 @@ export function TimeField({
               />
               <Wheel
                 key={`minute-${revision}`}
-                label="분"
+                label={tr("units.minutes")}
                 values={minutes}
                 value={String(clock.minute).padStart(2, "0")}
                 onChange={(minute) =>
@@ -88,7 +104,7 @@ export function TimeField({
             {["07:30", "12:00", "20:15", "23:00"].map((time) => (
               <Button
                 key={time}
-                title={displayTime(time)}
+                title={displayTime(time, locale)}
                 onPress={() => {
                   setCleared(false);
                   setDraft(time);
@@ -98,12 +114,11 @@ export function TimeField({
             ))}
           </Row>
           <T>
-            각 열을 스와이프하거나 눌러 선택하세요. 분은 00~59까지 선택할 수
-            있습니다.
+            {tr("time.field.swipe.or.tap.each.column.to.select.minutes.range")}
           </T>
           {optional && (
             <Button
-              title="알림 시각 지우기"
+              title={tr("time.field.clear.reminder.time")}
               onPress={() => {
                 setCleared(true);
               }}

@@ -1,3 +1,4 @@
+import { formatMessage } from "../src/i18n/core";
 import { describe, expect, it, vi } from "vitest";
 import { configurationIssue } from "../src/purchases/config";
 import {
@@ -47,9 +48,12 @@ describe("purchase configuration", () => {
       expect(configurationIssue("ios", key, true, false)).toBeTruthy();
     expect(configurationIssue("ios", "appl_public", false, false)).toBeTruthy();
     expect(configurationIssue("ios", "appl_public", true, true)).toBeTruthy();
-    expect(configurationIssue("web", "appl_public", true, false)).toContain(
-      "Android/iOS",
-    );
+    expect(
+      formatMessage(
+        configurationIssue("web", "appl_public", true, false)!,
+        "ko",
+      ),
+    ).toContain("Android/iOS");
   });
 });
 describe("purchase lifecycle with a mocked SDK adapter (not store testing)", () => {
@@ -141,11 +145,15 @@ describe("purchase lifecycle with a mocked SDK adapter (not store testing)", () 
     const c = new PurchaseController(client);
     await c.refresh();
     await c.restore();
-    expect(c.getSnapshot().message).toContain("복원이 완료");
+    expect(formatMessage(c.getSnapshot().message, "ko")).toContain(
+      "복원이 완료",
+    );
     client.restore.mockResolvedValue(info(false, 3));
     await c.restore();
     expect(c.getSnapshot().ownership).toBe("not_owned");
-    expect(c.getSnapshot().message).toContain("찾지 못했습니다");
+    expect(formatMessage(c.getSnapshot().message, "ko")).toContain(
+      "찾지 못했습니다",
+    );
   });
   it("preserves known ownership on network error and keeps unknown distinct from unpurchased", async () => {
     const { client } = fixture();
@@ -205,5 +213,5 @@ it("restore sheet cancellation is a normal outcome and retains known ownership",
   await c.restore();
   expect(c.getSnapshot().status).toBe("cancelled");
   expect(c.getSnapshot().ownership).toBe("not_owned");
-  expect(c.getSnapshot().message).toContain("복원을 취소");
+  expect(formatMessage(c.getSnapshot().message, "ko")).toContain("복원을 취소");
 });

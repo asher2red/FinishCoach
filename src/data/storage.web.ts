@@ -1,3 +1,4 @@
+import { LocalizedError } from "../i18n/core";
 import { State, emptyState } from "../domain/model";
 import { Repository } from "./repository";
 import { normalizeSettings } from "../domain/settings";
@@ -11,7 +12,9 @@ const entities = [
 function database(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === "undefined")
-      return reject(new Error("이 브라우저는 IndexedDB를 지원하지 않습니다."));
+      return reject(
+        new LocalizedError("errors.this.browser.does.not.support.indexeddb"),
+      );
     const request = indexedDB.open("finish-coach-v1", 1);
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -34,7 +37,7 @@ function database(): Promise<IDBDatabase> {
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
     request.onblocked = () =>
-      reject(new Error("다른 탭을 닫고 저장소를 다시 여세요."));
+      reject(new LocalizedError("errors.close.other.tabs.and.reopen.storage"));
   });
 }
 export const repository: Repository = {
@@ -61,7 +64,9 @@ export const repository: Repository = {
       tx.oncomplete = () => {
         db.close();
         if (version !== undefined && version !== 1)
-          reject(new Error("지원되지 않는 데이터 버전입니다."));
+          reject(
+            new LocalizedError("errors.this.data.version.is.not.supported"),
+          );
         else resolve(version ? s : null);
       };
       tx.onabort = () => {
@@ -88,7 +93,9 @@ export const repository: Repository = {
       };
       tx.onabort = () => {
         db.close();
-        reject(tx.error ?? new Error("저장에 실패했습니다."));
+        reject(
+          tx.error ?? new LocalizedError("errors.couldn.t.save.your.changes"),
+        );
       };
       tx.onerror = () => reject(tx.error);
     });

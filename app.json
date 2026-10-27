@@ -43,6 +43,15 @@
         {
           "enableRemoteNotifications": false
         }
+      ],
+      [
+        "expo-localization",
+        {
+          "supportedLocales": [
+            "en",
+            "ko"
+          ]
+        }
       ]
     ],
     "experiments": {

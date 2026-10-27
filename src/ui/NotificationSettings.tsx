@@ -1,3 +1,5 @@
+import { message as msg, type AppMessage } from "../i18n/core";
+import { useI18n } from "../i18n/context";
 import React from "react";
 import { Platform, Switch, View, Linking } from "react-native";
 import { useStore } from "../data/context";
@@ -5,15 +7,18 @@ import { normalizeSettings } from "../domain/settings";
 import { Card, T, Row, Button } from "./design";
 import { requestPermission } from "../services/notifications";
 export function NotificationSettings() {
+  const { t: tr, text } = useI18n();
+
   const { state, mutate, busy } = useStore();
   const settings = normalizeSettings(state.settings);
-  const [message, setMessage] = React.useState("");
+  const [message, setMessage] = React.useState<AppMessage>("");
   return (
     <View style={{ gap: 18 }}>
-      <T big>앱 전체 알림 설정</T>
+      <T big>{tr("notification.settings.app.notification.settings")}</T>
       <T>
-        모든 루틴에 공통으로 적용하고 변경 즉시 저장합니다. 소리와 진동을 꺼도
-        알림은 표시됩니다.
+        {tr(
+          "notification.settings.applies.to.all.routines.and.saves.immediately.notifications.still",
+        )}
       </T>
       {(["soundEnabled", "vibrationEnabled"] as const).map((key) => {
         const disabled =
@@ -24,15 +29,25 @@ export function NotificationSettings() {
           <Card key={key}>
             <Row>
               <View style={{ flex: 1 }}>
-                <T>{key === "soundEnabled" ? "알림음" : "진동"}</T>
                 <T>
                   {key === "soundEnabled"
-                    ? "루틴 알림이 울릴 때 소리를 재생합니다."
-                    : "루틴 알림이 울릴 때 진동을 사용합니다."}
+                    ? tr("notification.settings.notification.sound")
+                    : tr("notification.settings.vibration")}
+                </T>
+                <T>
+                  {key === "soundEnabled"
+                    ? tr(
+                        "notification.settings.play.a.sound.for.routine.reminders",
+                      )
+                    : tr("notification.settings.vibrate.for.routine.reminders")}
                 </T>
               </View>
               <Switch
-                accessibilityLabel={key === "soundEnabled" ? "알림음" : "진동"}
+                accessibilityLabel={
+                  key === "soundEnabled"
+                    ? tr("notification.settings.notification.sound")
+                    : tr("notification.settings.vibration")
+                }
                 disabled={disabled}
                 value={settings[key]}
                 onValueChange={(value) =>
@@ -47,14 +62,16 @@ export function NotificationSettings() {
             </Row>
             {Platform.OS === "web" && (
               <T>
-                웹 브라우저에서는 앱이 소리·진동을 일관되게 제어할 수 없어 이
-                설정을 변경할 수 없습니다.
+                {tr(
+                  "notification.settings.sound.and.vibration.cannot.be.consistently.controlled.by.this",
+                )}
               </T>
             )}
             {Platform.OS === "ios" && key === "vibrationEnabled" && (
               <T>
-                iOS 일반 알림은 진동만 독립 제어할 수 없습니다. 저장된 Android
-                설정을 표시하며 iOS에서는 시스템 설정을 따릅니다.
+                {tr(
+                  "notification.settings.ios.does.not.support.independent.vibration.control.for.standard",
+                )}
               </T>
             )}
           </Card>
@@ -62,31 +79,44 @@ export function NotificationSettings() {
       })}
       <Card>
         <T>
-          OS의 무음·방해 금지·집중 모드와 사용자가 변경한 알림 채널 설정이
-          우선합니다. 설정은 이미 예약한 알림에도 다시 반영합니다.
+          {tr(
+            "notification.settings.system.silent.mode.do.not.disturb.focus.and.notification",
+          )}
         </T>
         <Button
-          title="알림 권한 확인 및 요청"
+          title={tr(
+            "notification.settings.check.and.request.notification.permission",
+          )}
           onPress={() =>
             void requestPermission()
               .then((message) => {
                 setMessage(message);
                 void mutate(() => {});
               })
-              .catch(() => setMessage("권한 설정을 열 수 없습니다."))
+              .catch(() =>
+                setMessage(
+                  msg(
+                    "notification.settings.unable.to.open.permission.settings",
+                  ),
+                ),
+              )
           }
         />
         {Platform.OS !== "web" && (
           <Button
-            title="기기 알림 설정 열기"
+            title={tr(
+              "notification.settings.open.device.notification.settings",
+            )}
             onPress={() =>
               void Linking.openSettings().catch(() =>
-                setMessage("기기 설정을 열 수 없습니다."),
+                setMessage(
+                  msg("notification.settings.unable.to.open.device.settings"),
+                ),
               )
             }
           />
         )}
-        {!!message && <T>{message}</T>}
+        {!!message && <T>{text(message)}</T>}
       </Card>
     </View>
   );
