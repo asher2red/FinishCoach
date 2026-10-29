@@ -1,3 +1,4 @@
+import { WidgetSync } from "../widgets/WidgetSync";
 import { I18nProvider } from "../i18n/context";
 import { PurchaseProvider } from "../purchases/context";
 import { Stack } from "expo-router";
@@ -43,6 +44,7 @@ export default function Layout() {
   return (
     <Provider>
       <I18nProvider>
+        <WidgetSync />
         <PurchaseProvider>
           <AppFrame />
         </PurchaseProvider>

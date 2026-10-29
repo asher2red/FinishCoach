@@ -1,3 +1,4 @@
+import { todayProgress } from "../domain/today";
 import {
   activityKeys,
   frequencyKeys,
@@ -121,15 +122,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
     [archive, setArchive] = useState(false);
   const today = localDate(),
     n = useMemo(() => stats(s, today), [s, today]),
-    items = s.occurrences.filter(
-      (o) =>
-        o.localDate === today &&
-        (o.status === "completed" ||
-          s.routines.some(
-            (r) => r.id === o.routineId && r.isActive && !r.deletedAt,
-          )),
-    ),
-    done = items.filter((o) => o.status === "completed").length;
+    { items, done, percent } = todayProgress(s, today);
   const title = (id: string) =>
     s.routines.find((r) => r.id === id)?.title ?? tr("coach.archived.routine");
   const change = (patch: Partial<Routine>) =>
@@ -258,9 +251,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                           fontWeight: "700",
                         }}
                       >
-                        {items.length
-                          ? Math.round((done / items.length) * 100)
-                          : 0}
+                        {percent}
                         %
                       </Text>
                       <Text style={{ color: c.tones.today.ink }}>

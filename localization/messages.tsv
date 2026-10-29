@@ -349,3 +349,15 @@ units.duration	{minutes}분	{minutes} min	App display text in src/screens/Coach.
 units.minuteCount.plural.one	{count}분	{count} min	Complete UI message; named interpolation	src/screens/Coach.tsx
 units.minuteCount.plural.other	{count}분	{count} min	Complete UI message; named interpolation	src/screens/Coach.tsx
 units.minutes	분	min	App display text in src/screens/Coach.tsx. Keep named placeholders and date format tokens unchanged.	src/screens/Coach.tsx
+widget.accessibility	오늘 달성률 {percent}%. {total}개 중 {done}개 완료.	Today: {percent}%. {done} of {total} completed.	Home screen coach widget	src/widgets/snapshot.ts
+widget.approve	좋아. 오늘은 인정.	Well done. Approved.	Home screen coach widget	src/widgets/snapshot.ts
+widget.description	오늘 달성률을 지켜보는 교관	Your coach is watching today’s progress.	Home screen coach widget	src/widgets/snapshot.ts
+widget.empty	오늘 작전부터 세워볼까?	Plan today’s mission?	Home screen coach widget	src/widgets/snapshot.ts
+widget.expect	마지막까지 간다.	Finish strong.	Home screen coach widget	src/widgets/snapshot.ts
+widget.observe	절반 왔다. 방심 금지.	Halfway. Stay sharp.	Home screen coach widget	src/widgets/snapshot.ts
+widget.open	눌러서 오늘 화면 열기	Tap to open Today	Home screen coach widget	src/widgets/snapshot.ts
+widget.stale	오늘 현황 확인	Check today’s progress	Home screen coach widget	src/widgets/snapshot.ts
+widget.started	첫 발은 뗐군.	A start. Keep going.	Home screen coach widget	src/widgets/snapshot.ts
+widget.strict	계속 움직여.	Keep moving.	Home screen coach widget	src/widgets/snapshot.ts
+widget.title	도베르만 교관	Doberman Coach	Home screen coach widget	src/widgets/snapshot.ts
+widget.watch	보고 있다.	I’m watching.	Home screen coach widget	src/widgets/snapshot.ts

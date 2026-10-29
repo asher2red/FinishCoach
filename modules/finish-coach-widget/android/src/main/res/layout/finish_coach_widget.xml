@@ -1,0 +1,11 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/coach_root"
+ android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
+ android:gravity="center" android:padding="12dp" android:background="@drawable/finish_widget_background">
+ <TextView android:id="@+id/coach_line" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:maxLines="2" android:ellipsize="end" android:textSize="13sp" android:textStyle="bold" android:textColor="#172039" android:padding="5dp" android:background="@drawable/finish_widget_bubble" android:text="@string/finish_widget_stale" />
+ <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:minHeight="65dp">
+  <ImageView android:id="@+id/coach_face" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:src="@drawable/doberman_observe" android:importantForAccessibility="no" />
+  <TextView android:id="@+id/coach_badge" android:layout_width="34dp" android:layout_height="34dp" android:layout_gravity="end|top" android:gravity="center" android:textSize="24sp" android:textStyle="bold" android:textColor="#BD2837" android:text="!!" android:importantForAccessibility="no" />
+ </FrameLayout>
+ <TextView android:id="@+id/coach_value" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:textSize="30sp" android:textStyle="bold" android:textColor="#246C4B" android:text="—" />
+ <ProgressBar android:id="@+id/coach_progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="6dp" android:max="100" android:progress="0" android:importantForAccessibility="no" />
+</LinearLayout>

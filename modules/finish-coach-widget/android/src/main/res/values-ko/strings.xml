@@ -1,0 +1,5 @@
+<!-- Generated from localization/messages.csv. Do not edit. -->
+<resources>
+  <string name="finish_widget_stale">오늘 현황 확인</string>
+  <string name="finish_widget_description">오늘 달성률을 지켜보는 교관</string>
+</resources>

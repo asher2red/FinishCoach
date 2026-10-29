@@ -234,343 +234,343 @@
     {
       "value": "독서",
       "source": "src/screens/Coach.tsx",
-      "line": 58,
+      "line": 59,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "운동",
       "source": "src/screens/Coach.tsx",
-      "line": 59,
+      "line": 60,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "일기",
       "source": "src/screens/Coach.tsx",
-      "line": 60,
+      "line": 61,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "프로젝트 작업",
       "source": "src/screens/Coach.tsx",
-      "line": 61,
+      "line": 62,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "공부",
       "source": "src/screens/Coach.tsx",
-      "line": 62,
-      "kind": "review-internal-value-or-preset",
-      "syntax": "ArrayLiteralExpression"
-    },
-    {
-      "value": "취침",
-      "source": "src/screens/Coach.tsx",
       "line": 63,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
-      "value": "기상",
+      "value": "취침",
       "source": "src/screens/Coach.tsx",
       "line": 64,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
-      "value": "기타",
+      "value": "기상",
       "source": "src/screens/Coach.tsx",
       "line": 65,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
+      "value": "기타",
+      "source": "src/screens/Coach.tsx",
+      "line": 66,
+      "kind": "review-internal-value-or-preset",
+      "syntax": "ArrayLiteralExpression"
+    },
+    {
       "value": "오늘",
       "source": "src/screens/Coach.tsx",
-      "line": 67,
+      "line": 68,
       "kind": "review-internal-value-or-preset",
       "syntax": "BindingElement"
     },
     {
       "value": "일",
       "source": "src/screens/Coach.tsx",
-      "line": 118,
+      "line": 119,
       "kind": "review-internal-value-or-preset",
       "syntax": "CallExpression"
     },
     {
       "value": "전체",
       "source": "src/screens/Coach.tsx",
-      "line": 120,
+      "line": 121,
       "kind": "review-internal-value-or-preset",
       "syntax": "CallExpression"
     },
     {
       "value": "독서",
       "source": "src/screens/Coach.tsx",
-      "line": 141,
+      "line": 134,
       "kind": "review-internal-value-or-preset",
       "syntax": "PropertyAssignment"
     },
     {
       "value": "전체",
       "source": "src/screens/Coach.tsx",
-      "line": 158,
+      "line": 151,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "설정",
       "source": "src/screens/Coach.tsx",
-      "line": 193,
+      "line": 186,
       "kind": "review-internal-value-or-preset",
       "syntax": "CallExpression"
     },
     {
       "value": "오늘",
       "source": "src/screens/Coach.tsx",
-      "line": 209,
+      "line": 202,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "루틴",
       "source": "src/screens/Coach.tsx",
-      "line": 211,
+      "line": 204,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "기록",
       "source": "src/screens/Coach.tsx",
-      "line": 213,
+      "line": 206,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "통계",
       "source": "src/screens/Coach.tsx",
-      "line": 215,
+      "line": 208,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "설정",
       "source": "src/screens/Coach.tsx",
-      "line": 217,
+      "line": 210,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "오늘",
       "source": "src/screens/Coach.tsx",
-      "line": 248,
+      "line": 241,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "프로젝트",
       "source": "src/screens/Coach.tsx",
-      "line": 464,
+      "line": 455,
       "kind": "review-internal-value-or-preset",
       "syntax": "CallExpression"
     },
     {
       "value": "루틴",
       "source": "src/screens/Coach.tsx",
-      "line": 470,
+      "line": 461,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "기록",
       "source": "src/screens/Coach.tsx",
-      "line": 564,
+      "line": 555,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "일",
       "source": "src/screens/Coach.tsx",
-      "line": 567,
+      "line": 558,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "주",
       "source": "src/screens/Coach.tsx",
-      "line": 567,
+      "line": 558,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "월",
       "source": "src/screens/Coach.tsx",
-      "line": 567,
+      "line": 558,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "년",
       "source": "src/screens/Coach.tsx",
-      "line": 567,
+      "line": 558,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "전체",
       "source": "src/screens/Coach.tsx",
-      "line": 600,
+      "line": 591,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "전체",
       "source": "src/screens/Coach.tsx",
-      "line": 601,
+      "line": 592,
       "kind": "review-internal-value-or-preset",
       "syntax": "CallExpression"
     },
     {
       "value": "일",
       "source": "src/screens/Coach.tsx",
-      "line": 619,
+      "line": 610,
       "kind": "review-internal-value-or-preset",
       "syntax": "CallExpression"
     },
     {
       "value": "설정",
       "source": "src/screens/Coach.tsx",
-      "line": 670,
+      "line": 661,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "통계",
       "source": "src/screens/Coach.tsx",
-      "line": 678,
+      "line": 669,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "년",
       "source": "src/screens/Coach.tsx",
-      "line": 683,
+      "line": 674,
       "kind": "review-internal-value-or-preset",
       "syntax": "JsxAttribute"
     },
     {
       "value": "전체",
       "source": "src/screens/Coach.tsx",
-      "line": 684,
+      "line": 675,
       "kind": "review-internal-value-or-preset",
       "syntax": "JsxAttribute"
     },
     {
       "value": "프로젝트",
       "source": "src/screens/Coach.tsx",
-      "line": 809,
+      "line": 800,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "취침",
       "source": "src/screens/Coach.tsx",
-      "line": 1025,
+      "line": 1016,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "기상",
       "source": "src/screens/Coach.tsx",
-      "line": 1025,
+      "line": 1016,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "기타",
       "source": "src/screens/Coach.tsx",
-      "line": 1039,
+      "line": 1030,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
     },
     {
       "value": "일",
       "source": "src/screens/Coach.tsx",
-      "line": 1088,
+      "line": 1079,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "월",
       "source": "src/screens/Coach.tsx",
-      "line": 1088,
+      "line": 1079,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "화",
       "source": "src/screens/Coach.tsx",
-      "line": 1088,
+      "line": 1079,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "수",
       "source": "src/screens/Coach.tsx",
-      "line": 1088,
+      "line": 1079,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "목",
       "source": "src/screens/Coach.tsx",
-      "line": 1088,
+      "line": 1079,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "금",
       "source": "src/screens/Coach.tsx",
-      "line": 1088,
+      "line": 1079,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "토",
       "source": "src/screens/Coach.tsx",
-      "line": 1088,
+      "line": 1079,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "취침",
       "source": "src/screens/Coach.tsx",
-      "line": 1109,
+      "line": 1100,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "기상",
       "source": "src/screens/Coach.tsx",
-      "line": 1109,
+      "line": 1100,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "취침",
       "source": "src/screens/Coach.tsx",
-      "line": 1121,
+      "line": 1112,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
     {
       "value": "기상",
       "source": "src/screens/Coach.tsx",
-      "line": 1121,
+      "line": 1112,
       "kind": "review-internal-value-or-preset",
       "syntax": "ArrayLiteralExpression"
     },
@@ -971,7 +971,17 @@
     "units.duration",
     "units.minuteCount.plural.one",
     "units.minuteCount.plural.other",
-    "units.minutes"
+    "units.minutes",
+    "widget.accessibility",
+    "widget.approve",
+    "widget.empty",
+    "widget.expect",
+    "widget.observe",
+    "widget.open",
+    "widget.stale",
+    "widget.started",
+    "widget.strict",
+    "widget.watch"
   ],
   "unusedKeys": [
     "analytics.dashboard.completed.activities",
@@ -1005,6 +1015,8 @@
     "stats.completedOfGoal",
     "theme.selectedLabel",
     "theme.settings.current.color",
-    "units.count"
+    "units.count",
+    "widget.description",
+    "widget.title"
   ]
 }

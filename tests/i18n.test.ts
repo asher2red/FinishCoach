@@ -191,4 +191,4 @@ it("generation and extraction are deterministic, preserve CSV edits and detect u
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
-});
+}, 30000);

@@ -350,7 +350,19 @@ export const resources = {
     "units.duration": "{minutes}분",
     "units.minuteCount.plural.one": "{count}분",
     "units.minuteCount.plural.other": "{count}분",
-    "units.minutes": "분"
+    "units.minutes": "분",
+    "widget.accessibility": "오늘 달성률 {percent}%. {total}개 중 {done}개 완료.",
+    "widget.approve": "좋아. 오늘은 인정.",
+    "widget.description": "오늘 달성률을 지켜보는 교관",
+    "widget.empty": "오늘 작전부터 세워볼까?",
+    "widget.expect": "마지막까지 간다.",
+    "widget.observe": "절반 왔다. 방심 금지.",
+    "widget.open": "눌러서 오늘 화면 열기",
+    "widget.stale": "오늘 현황 확인",
+    "widget.started": "첫 발은 뗐군.",
+    "widget.strict": "계속 움직여.",
+    "widget.title": "도베르만 교관",
+    "widget.watch": "보고 있다."
   },
   "en": {
     "analytics.dashboard.active.days.in.this.week": "Active days in this week",
@@ -702,7 +714,19 @@ export const resources = {
     "units.duration": "{minutes} min",
     "units.minuteCount.plural.one": "{count} min",
     "units.minuteCount.plural.other": "{count} min",
-    "units.minutes": "min"
+    "units.minutes": "min",
+    "widget.accessibility": "Today: {percent}%. {done} of {total} completed.",
+    "widget.approve": "Well done. Approved.",
+    "widget.description": "Your coach is watching today’s progress.",
+    "widget.empty": "Plan today’s mission?",
+    "widget.expect": "Finish strong.",
+    "widget.observe": "Halfway. Stay sharp.",
+    "widget.open": "Tap to open Today",
+    "widget.stale": "Check today’s progress",
+    "widget.started": "A start. Keep going.",
+    "widget.strict": "Keep moving.",
+    "widget.title": "Doberman Coach",
+    "widget.watch": "I’m watching."
   }
 } as const;
 export type Locale = keyof typeof resources;
@@ -1058,4 +1082,16 @@ export interface MessageParams {
   "units.minuteCount.plural.one": {"count": string | number};
   "units.minuteCount.plural.other": {"count": string | number};
   "units.minutes": Record<never, never>;
+  "widget.accessibility": {"done": string | number; "percent": string | number; "total": string | number};
+  "widget.approve": Record<never, never>;
+  "widget.description": Record<never, never>;
+  "widget.empty": Record<never, never>;
+  "widget.expect": Record<never, never>;
+  "widget.observe": Record<never, never>;
+  "widget.open": Record<never, never>;
+  "widget.stale": Record<never, never>;
+  "widget.started": Record<never, never>;
+  "widget.strict": Record<never, never>;
+  "widget.title": Record<never, never>;
+  "widget.watch": Record<never, never>;
 }

@@ -1,0 +1,16 @@
+{
+  "platforms": [
+    "apple",
+    "android"
+  ],
+  "android": {
+    "modules": [
+      "expo.modules.finishcoachwidget.FinishCoachWidgetModule"
+    ]
+  },
+  "apple": {
+    "modules": [
+      "FinishCoachWidgetModule"
+    ]
+  }
+}

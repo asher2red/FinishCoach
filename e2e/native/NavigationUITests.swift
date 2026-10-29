@@ -23,6 +23,18 @@ final class NavigationUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["오늘, 하나씩 끝내볼까요?"].waitForExistence(timeout: 10))
   }
 
+  func testWidgetHostAppLaunch() {
+    continueAfterFailure = false
+    XCUIDevice.shared.orientation = .portrait
+    let app = XCUIApplication(bundleIdentifier: "com.finishcoach.app")
+    app.launch()
+    XCTAssertTrue(app.buttons["bottom-menu-today"].waitForExistence(timeout: 20))
+    app.buttons["bottom-menu-today"].tap()
+    shot("widget-host-app", app)
+    app.terminate()
+    app.launch()
+    XCTAssertTrue(app.buttons["bottom-menu-today"].waitForExistence(timeout: 20))
+  }
   func testLocalizationPersistenceAndEnglishMenus() {
     continueAfterFailure = false
     XCUIDevice.shared.orientation = .portrait

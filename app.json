@@ -52,7 +52,34 @@
             "ko"
           ]
         }
-      ]
+      ],
+      "expo-asset",
+      "./plugins/with-finish-coach-widget.cjs",
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "com.finishcoach.app.widgets",
+          "groupIdentifier": "group.com.finishcoach.app",
+          "widgets": [
+            {
+              "name": "FinishCoachWidget",
+              "displayName": "Finish Coach",
+              "description": "Your Doberman coach watches today’s progress.",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall"
+                ],
+                "contentMarginsDisabled": true,
+                "initialLayout": "src/widgets/CoachWidget.ios.tsx"
+              },
+              "android": null
+            }
+          ]
+        }
+      ],
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
