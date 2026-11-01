@@ -36,7 +36,7 @@ module.exports = (config) =>
         ) +
           "\n" +
           fs.readFileSync(
-            path.join(root, "plugins/widgets/widget-images.swift"),
+            path.join(root, "plugins/widgets/routine-props.swift"),
             "utf8",
           ),
       ),
@@ -48,7 +48,6 @@ module.exports = (config) =>
       ),
     );
     const resources = [
-      ["assets/mascot/doberman-observe.png", "doberman-observe.png"],
       ["localization/widget-strings.json", "FinishCoachWidgetStrings.json"],
     ];
     if (!catalog.ko || !catalog.en)

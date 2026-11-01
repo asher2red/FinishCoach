@@ -75,7 +75,7 @@
     "widgets:generate": "node scripts/widgets/generate.mjs",
     "prebuild:ios:device:local": "npm run i18n:check && npm run widgets:generate",
     "widgets:check": "node scripts/widgets/generate.mjs --check",
-    "test:widget-images": "node scripts/widgets/test-ios-images.mjs"
+    "test:widget-native": "node scripts/widgets/test-ios-date.mjs"
   },
   "private": true
 }

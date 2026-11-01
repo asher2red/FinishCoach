@@ -1,6 +1,6 @@
 import type { WidgetSnapshot } from "./snapshot";
 
-// Serialization prevents an older asynchronous image copy from overwriting a
+// Serialization prevents an older asynchronous shared-file write from overwriting a
 // newer completion. Failed publication is retried on the next app state update.
 export function createWidgetPublisher(
   write: (snapshot: WidgetSnapshot) => Promise<void>,

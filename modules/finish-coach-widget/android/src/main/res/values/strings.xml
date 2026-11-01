@@ -1,5 +1,6 @@
 <!-- Generated from localization/messages.csv. Do not edit. -->
 <resources>
-  <string name="finish_widget_stale">Check today’s progress</string>
-  <string name="finish_widget_description">Your coach is watching today’s progress.</string>
+  <string name="finish_widget_stale">Open the app to refresh today’s routines.</string>
+  <string name="finish_widget_title">Today’s routines</string>
+  <string name="finish_widget_description">See today’s routines and remaining count.</string>
 </resources>

@@ -12,37 +12,20 @@ it("sends an atomic-file protocol with current and neutral midnight entries", ()
     "ko",
     new Date(2026, 9, 30, 12),
   );
-  const images = {
-    watch: "file:///watch.png",
-    strict: "file:///strict.png",
-    observe: "file:///observe.png",
-    expect: "file:///expect.png",
-    approve: "file:///approve.png",
-  };
-  const payload = JSON.parse(
-    JSON.stringify(
-      makeSharedTimeline(snapshot, images, {
-        bg: "#fff",
-        text: "#111",
-        accent: "#246C4B",
-        surface: "#eee",
-      }),
-    ),
-  );
+  const payload = JSON.parse(JSON.stringify(makeSharedTimeline(snapshot)));
   expect(payload.version).toBe(1);
   expect(payload.entries).toHaveLength(2);
   expect(payload.entries[0].props).toMatchObject({
-    line: "오늘 작전부터 세워볼까?",
-    image: images.observe,
-    neutralImage: images.observe,
+    title: "오늘 루틴(0/0)",
+    items: [],
     url: "finishcoach:///",
   });
   expect(payload.entries[1]).toMatchObject({
     timestamp: snapshot.expiresAt,
-    props: { status: "stale", value: "—", neutralImage: images.observe },
+    props: { status: "stale", items: [], title: "오늘 루틴(—/—)" },
   });
 });
-it("uses shared-file provider and includes bundled-image fallback in the extension", () => {
+it("uses shared-file provider without mascot image resources", () => {
   const generated =
     "StaticConfiguration(kind: name, provider: WidgetsTimelineProvider(name: name)) { entry in WidgetsEntryView(entry: entry) }";
   const helper = readFileSync("plugins/widgets/shared-timeline.swift", "utf8");
@@ -52,9 +35,8 @@ it("uses shared-file provider and includes bundled-image fallback in the extensi
   expect(result).toContain(
     'container.appendingPathComponent("ExpoWidgets/finish-coach-timeline-v1.json")',
   );
-  expect(result).toContain(
-    'Bundle.main.url(forResource: "doberman-observe", withExtension: "png")',
-  );
+  expect(result).not.toContain("doberman");
+  expect(result).not.toContain("finishCoachRenderProps");
   expect(result).not.toContain("UserDefaults(suiteName:");
   expect(() => patchTimeline("unexpected SDK provider", helper)).toThrow(
     /provider changed/,

@@ -650,6 +650,20 @@
       "line": 67,
       "kind": "review-internal-value-or-preset",
       "syntax": "BinaryExpression"
+    },
+    {
+      "value": "완료",
+      "source": "src/widgets/CoachWidget.ios.tsx",
+      "line": 73,
+      "kind": "review-internal-value-or-preset",
+      "syntax": "ConditionalExpression"
+    },
+    {
+      "value": "미완료",
+      "source": "src/widgets/CoachWidget.ios.tsx",
+      "line": 73,
+      "kind": "review-internal-value-or-preset",
+      "syntax": "ConditionalExpression"
     }
   ],
   "unknown": [],
@@ -972,16 +986,12 @@
     "units.minuteCount.plural.one",
     "units.minuteCount.plural.other",
     "units.minutes",
-    "widget.accessibility",
-    "widget.approve",
-    "widget.empty",
-    "widget.expect",
-    "widget.observe",
-    "widget.open",
-    "widget.stale",
-    "widget.started",
-    "widget.strict",
-    "widget.watch"
+    "widget.listAccessibility",
+    "widget.more",
+    "widget.noRoutines",
+    "widget.refreshRoutines",
+    "widget.routines",
+    "widget.untitled"
   ],
   "unusedKeys": [
     "analytics.dashboard.completed.activities",
@@ -1016,7 +1026,17 @@
     "theme.selectedLabel",
     "theme.settings.current.color",
     "units.count",
+    "widget.accessibility",
+    "widget.approve",
     "widget.description",
-    "widget.title"
+    "widget.empty",
+    "widget.expect",
+    "widget.observe",
+    "widget.open",
+    "widget.stale",
+    "widget.started",
+    "widget.strict",
+    "widget.title",
+    "widget.watch"
   ]
 }

@@ -1,5 +1,6 @@
 <!-- Generated from localization/messages.csv. Do not edit. -->
 <resources>
-  <string name="finish_widget_stale">오늘 현황 확인</string>
-  <string name="finish_widget_description">오늘 달성률을 지켜보는 교관</string>
+  <string name="finish_widget_stale">앱을 열어 오늘 루틴을 불러오세요.</string>
+  <string name="finish_widget_title">오늘 루틴</string>
+  <string name="finish_widget_description">오늘 루틴 목록과 남은 개수를 확인하세요.</string>
 </resources>

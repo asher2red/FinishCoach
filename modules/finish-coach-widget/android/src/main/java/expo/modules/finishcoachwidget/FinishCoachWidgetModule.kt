@@ -12,7 +12,7 @@ class FinishCoachWidgetModule : Module() {
     AsyncFunction("writeSnapshot") { json: String ->
       val context = appContext.reactContext ?: error("Application context unavailable")
       val payload = JSONObject(json)
-      require(payload.getInt("version") == 1)
+      require(payload.getInt("version") == 2)
       require(payload.getString("url") == "finishcoach:///")
       val file = AtomicFile(File(context.filesDir, "finish-coach-widget.json"))
       val stream = file.startWrite()

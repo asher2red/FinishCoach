@@ -64,10 +64,12 @@
             {
               "name": "FinishCoachWidget",
               "displayName": "Finish Coach",
-              "description": "Your Doberman coach watches today’s progress.",
+              "description": "Today’s routines and remaining count.",
               "ios": {
                 "supportedFamilies": [
-                  "systemSmall"
+                  "systemSmall",
+                  "systemMedium",
+                  "systemLarge"
                 ],
                 "contentMarginsDisabled": true,
                 "initialLayout": "src/widgets/CoachWidget.ios.tsx"

@@ -14,16 +14,13 @@ private func finishCoachSharedTimeline() -> [[String: Any]]? {
 
 private func finishCoachInitialProps() -> [String: Any] {
   var props = WidgetsLayoutRegistry.initialProps(for: "FinishCoachWidget") ?? [:]
-  if let image = Bundle.main.url(forResource: "doberman-observe", withExtension: "png") {
-    props["neutralImage"] = image.absoluteString
-  }
   if let url = Bundle.main.url(forResource: "FinishCoachWidgetStrings", withExtension: "json"),
      let data = try? Data(contentsOf: url),
      let catalog = (try? JSONSerialization.jsonObject(with: data)) as? [String: [String: String]] {
     let locale = Locale.preferredLanguages.first?.hasPrefix("ko") == true ? "ko" : "en"
     if let strings = catalog[locale] {
-      props["staleLine"] = strings["widget.stale"]
-      props["staleAccessibility"] = (strings["widget.stale"] ?? "") + " " + (strings["widget.open"] ?? "")
+      props["titleBase"] = strings["widget.routines"]
+      props["staleLine"] = strings["widget.refreshRoutines"]
     }
   }
   return props
@@ -65,7 +62,7 @@ private struct FinishCoachFileView: View {
   var body: some View {
     if let layout = WidgetsLayoutRegistry.layout(for: "FinishCoachWidget") {
       let values = getWidgetEnvironment(environment: environment).merging(["timestamp": Int(entry.date.timeIntervalSince1970 * 1000)]) { _, new in new }
-      let node = evaluateLayout(layout: layout, props: finishCoachRenderProps(entry.props), environment: values)
+      let node = evaluateLayout(layout: layout, props: finishCoachRoutineProps(entry.props), environment: values)
       let json = (try? JSONSerialization.data(withJSONObject: values)).flatMap { String(data: $0, encoding: .utf8) }
       WidgetsDynamicView(name: "FinishCoachWidget", kind: .widget, node: node, entryIndex: nil, environmentString: json)
     } else {

@@ -9,5 +9,6 @@
       </intent-filter>
       <meta-data android:name="android.appwidget.provider" android:resource="@xml/finish_coach_widget" />
     </receiver>
+    <service android:name="expo.modules.finishcoachwidget.RoutineListService" android:permission="android.permission.BIND_REMOTEVIEWS" android:exported="false" />
   </application>
 </manifest>

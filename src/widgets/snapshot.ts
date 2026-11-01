@@ -1,52 +1,31 @@
 import { localDate, type State } from "../domain/model";
 import { todayProgress } from "../domain/today";
-import { normalizeSettings } from "../domain/settings";
-import { translate, type Locale, type MessageKey } from "../i18n/core";
-export type Face = "watch" | "strict" | "observe" | "expect" | "approve";
-export type WidgetStatus = Face | "empty" | "stale";
+import { translate, type Locale } from "../i18n/core";
+
+export interface WidgetTask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
 export interface WidgetSnapshot {
-  version: 1;
+  version: 2;
   date: string;
   timeZoneOffset: number;
   done: number;
+  remaining: number;
   total: number;
-  percent: number;
-  status: WidgetStatus;
-  face: Face;
+  items: WidgetTask[];
   locale: Locale;
-  dark: boolean;
-  themeColor: string;
-  line: string;
-  value: string;
-  badge: string;
+  status: "current" | "stale";
+  title: string;
+  titleBase: string;
+  empty: string;
+  more: string;
   accessibility: string;
-  open: string;
   staleLine: string;
-  staleAccessibility: string;
   updatedAt: string;
   expiresAt: number;
   url: "finishcoach:///";
-}
-const messages: Record<WidgetStatus, MessageKey> = {
-  watch: "widget.watch",
-  strict: "widget.strict",
-  observe: "widget.observe",
-  expect: "widget.expect",
-  approve: "widget.approve",
-  empty: "widget.empty",
-  stale: "widget.stale",
-};
-export function progressStatus(done: number, total: number): WidgetStatus {
-  if (!total) return "empty";
-  if (done >= total) return "approve";
-  const ratio = done / total;
-  return ratio < 0.25
-    ? "watch"
-    : ratio < 0.5
-      ? "strict"
-      : ratio < 0.75
-        ? "observe"
-        : "expect";
 }
 export function makeWidgetSnapshot(
   state: State,
@@ -54,39 +33,39 @@ export function makeWidgetSnapshot(
   now = new Date(),
 ): WidgetSnapshot {
   const date = localDate(now);
-  const { done, total, percent } = todayProgress(state, date);
-  const status = progressStatus(done, total);
-  const settings = normalizeSettings(state.settings);
+  const { items, done, total } = todayProgress(state, date);
+  const titles = new Map(
+    state.routines.map((routine) => [routine.id, routine.title]),
+  );
+  const remaining = total - done;
+  const titleBase = translate(locale, "widget.routines");
+  const title = `${titleBase}(${remaining}/${total})`;
   const midnight = new Date(now);
   midnight.setHours(24, 0, 0, 0);
-  const value = total ? `${percent}%` : "—";
-  const open = translate(locale, "widget.open");
   return {
-    version: 1,
+    version: 2,
     date,
     timeZoneOffset: now.getTimezoneOffset(),
     done,
+    remaining,
     total,
-    percent,
-    status,
-    face: status === "empty" ? "observe" : (status as Face),
+    items: items.map((item) => ({
+      id: item.id,
+      title: titles.get(item.routineId) || translate(locale, "widget.untitled"),
+      completed: item.status === "completed",
+    })),
     locale,
-    dark: settings.backgroundTheme === "dark",
-    themeColor: settings.themeColor,
-    line: translate(
-      locale,
-      status === "watch" && done > 0 ? "widget.started" : messages[status],
-    ),
-    value,
-    badge: status === "approve" ? "✦" : status === "watch" ? "!!" : "•",
-    accessibility: total
-      ? translate(locale, "widget.accessibility", { percent, done, total }) +
-        " " +
-        open
-      : translate(locale, "widget.empty") + " " + open,
-    open,
-    staleLine: translate(locale, "widget.stale"),
-    staleAccessibility: translate(locale, "widget.stale") + " " + open,
+    status: "current",
+    title,
+    titleBase,
+    empty: translate(locale, "widget.noRoutines"),
+    more: translate(locale, "widget.more"),
+    accessibility: translate(locale, "widget.listAccessibility", {
+      remaining,
+      total,
+      done,
+    }),
+    staleLine: translate(locale, "widget.refreshRoutines"),
     updatedAt: now.toISOString(),
     expiresAt: midnight.getTime(),
     url: "finishcoach:///",
@@ -96,14 +75,13 @@ export function expiredSnapshot(snapshot: WidgetSnapshot): WidgetSnapshot {
   return {
     ...snapshot,
     done: 0,
+    remaining: 0,
     total: 0,
-    percent: 0,
+    items: [],
     status: "stale",
-    face: "observe",
-    value: "—",
-    badge: "•",
-    line: snapshot.staleLine,
-    accessibility: snapshot.staleAccessibility,
+    title: `${snapshot.titleBase}(—/—)`,
+    empty: snapshot.staleLine,
+    accessibility: snapshot.staleLine,
   };
 }
 export function isSnapshotStale(snapshot: WidgetSnapshot, now = new Date()) {
