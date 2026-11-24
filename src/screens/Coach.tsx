@@ -51,6 +51,7 @@ import { EditorScroll } from "../ui/EditorScroll";
 import { DateField } from "../ui/DateField";
 import { TimeField } from "../ui/TimeField";
 import { AnalyticsDashboard } from "../ui/AnalyticsDashboard";
+import { AccountSettings } from "../ui/AccountSettings";
 import { NotificationSettings } from "../ui/NotificationSettings";
 import { shiftPeriod } from "../domain/pickers";
 import { periodRange, Period } from "../domain/analytics";
@@ -234,6 +235,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                 )}
               </Card>
             )}
+            {page === "설정" && <AccountSettings />}
             {!ready ? (
               <T>{tr("coach.preparing.storage")}</T>
             ) : (

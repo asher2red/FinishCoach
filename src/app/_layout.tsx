@@ -1,3 +1,8 @@
+import { useEffect, useMemo, useRef } from "react";
+import { emptyState } from "../domain/model";
+import { reconcileNotifications } from "../services/notifications";
+import { AuthProvider, useAuth } from "../account/auth";
+import { accountRepository } from "../account/repository";
 import { WidgetSync } from "../widgets/WidgetSync";
 import { I18nProvider } from "../i18n/context";
 import { PurchaseProvider } from "../purchases/context";
@@ -40,9 +45,28 @@ function AppFrame() {
     </View>
   );
 }
-export default function Layout() {
+function Workspace() {
+  const { ready, session } = useAuth();
+  const userId = session?.user.id;
+  const backend = useMemo(
+    () => (userId ? accountRepository(userId) : undefined),
+    [userId],
+  );
+  const workspaceId = userId || "guest";
+  const previousWorkspace = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!ready) return;
+    if (
+      previousWorkspace.current &&
+      previousWorkspace.current !== workspaceId
+    ) {
+      void reconcileNotifications(emptyState()).catch(() => {});
+    }
+    previousWorkspace.current = workspaceId;
+  }, [ready, workspaceId]);
+  if (!ready) return null;
   return (
-    <Provider>
+    <Provider key={workspaceId} backend={backend}>
       <I18nProvider>
         <WidgetSync />
         <PurchaseProvider>
@@ -50,5 +74,13 @@ export default function Layout() {
         </PurchaseProvider>
       </I18nProvider>
     </Provider>
+  );
+}
+
+export default function Layout() {
+  return (
+    <AuthProvider>
+      <Workspace />
+    </AuthProvider>
   );
 }

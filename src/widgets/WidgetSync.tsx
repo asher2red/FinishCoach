@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { emptyState } from "../domain/model";
 import { useStore } from "../data/context";
 import { useI18n } from "../i18n/context";
 import { makeWidgetSnapshot } from "./snapshot";
@@ -11,7 +12,7 @@ export function WidgetSync() {
   const { state, ready } = useStore();
   const { locale } = useI18n();
   useEffect(() => {
-    if (ready) void publish(makeWidgetSnapshot(state, locale));
+    void publish(makeWidgetSnapshot(ready ? state : emptyState(), locale));
   }, [state, ready, locale]);
   return null;
 }

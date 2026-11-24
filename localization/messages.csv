@@ -367,3 +367,16 @@ widget.refreshRoutines,앱을 열어 오늘 루틴을 불러오세요.,Open the 
 widget.more,더 보기,View all,Today routines home screen widget,src/widgets/snapshot.ts
 widget.untitled,이름 없는 루틴,Untitled routine,Today routines home screen widget,src/widgets/snapshot.ts
 widget.listAccessibility,"오늘 루틴, 남은 {remaining}개, 전체 {total}개, 완료 {done}개. 탭하여 오늘 화면 열기.","Today’s routines: {remaining} remaining, {total} total, {done} completed. Tap to open Today.",Today routines home screen widget,src/widgets/snapshot.ts
+account.title,내 계정,Account,Account settings,src/ui/AccountSettings.tsx
+account.guest,게스트 모드 · 데이터는 이 기기에만 저장됩니다.,Guest mode · Data stays on this device.,Account settings,src/ui/AccountSettings.tsx
+account.google,Google로 계속하기,Continue with Google,Account sign in,src/ui/AccountSettings.tsx
+account.online,같은 계정으로 로그인한 기기에서 루틴과 기록을 공유합니다.,Share routines and records across devices signed in to this account.,Account settings,src/ui/AccountSettings.tsx
+account.signOut,로그아웃,Sign out,Account settings,src/ui/AccountSettings.tsx
+account.import,이 기기의 게스트 데이터 가져오기,Import guest data from this device,Account settings,src/ui/AccountSettings.tsx
+account.noGuestData,가져올 게스트 데이터가 없습니다.,There is no guest data to import.,Account settings,src/ui/AccountSettings.tsx
+account.refresh,계정 데이터 새로고침,Refresh account data,Account settings,src/ui/AccountSettings.tsx
+account.loginFailed,계정을 연결하지 못했습니다. 잠시 후 다시 시도하세요.,Could not connect the account. Try again in a moment.,Authentication status,src/ui/AccountSettings.tsx
+account.connecting,로그인을 완료하는 중…,Completing sign-in…,Authentication status,src/app/auth/callback.tsx
+account.back,설정으로 돌아가기,Back to settings,Authentication status,src/app/auth/callback.tsx
+account.conflict,다른 기기에서 데이터가 변경되었습니다. 계정 데이터를 새로고침한 뒤 다시 시도하세요.,Data changed on another device. Refresh account data and try again.,Account sync error,src/account/repository.ts
+account.providerUnavailable,이 로그인 방식은 아직 설정되지 않았습니다.,This sign-in method has not been configured yet.,Authentication status,src/account/auth.tsx

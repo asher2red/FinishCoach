@@ -16,6 +16,7 @@ import { AppState } from "react-native";
 import { emptyState, State } from "../domain/model";
 import { generate } from "../domain/engine";
 import { repository } from "./storage";
+import type { Repository } from "./repository";
 import { reconcileNotifications } from "../services/notifications";
 interface Store {
   state: State;
@@ -31,12 +32,19 @@ interface Store {
   clearError: () => void;
 }
 const Context = createContext<Store>(null!);
-export function Provider({ children }: { children: React.ReactNode }) {
+export function Provider({
+  children,
+  backend = repository,
+}: {
+  children: React.ReactNode;
+  backend?: Repository;
+}) {
   const [state, setState] = useState(emptyState),
     [ready, setReady] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<AppMessage>(""),
     [notice, setNotice] = useState<AppMessage>("");
+  const active = useRef(true);
   const current = useRef(state),
     initialized = useRef(false),
     queue = useRef(Promise.resolve());
@@ -54,27 +62,32 @@ export function Provider({ children }: { children: React.ReactNode }) {
       );
     }
   }, []);
-  const reload = useCallback(async () => {
-    try {
-      const s = (await repository.load()) ?? emptyState();
-      if (s.version !== 1)
-        throw new LocalizedError("errors.this.data.version.is.not.supported");
-      generate(s);
-      await repository.commit(s);
-      current.current = s;
-      initialized.current = true;
-      setState(s);
-      setReady(true);
-      setError("");
-      await sync(s);
-    } catch (e) {
-      console.error(
-        "Storage initialization failed",
-        e instanceof Error ? e.name : "Error",
-      );
-      setError(errorMessage(e, "errors.unable.to.open.storage"));
-    }
-  }, [sync]);
+  const reload = useCallback(() => {
+    const run = queue.current.then(async () => {
+      if (!active.current) return;
+      try {
+        const s = (await backend.load()) ?? emptyState();
+        if (s.version !== 1)
+          throw new LocalizedError("errors.this.data.version.is.not.supported");
+        generate(s);
+        await backend.commit(s);
+        current.current = s;
+        initialized.current = true;
+        setState(s);
+        setReady(true);
+        setError("");
+        if (active.current) await sync(s);
+      } catch (e) {
+        console.error(
+          "Storage initialization failed",
+          e instanceof Error ? e.name : "Error",
+        );
+        setError(errorMessage(e, "errors.unable.to.open.storage"));
+      }
+    });
+    queue.current = run;
+    return run;
+  }, [backend, sync]);
   const mutate = useCallback(
     (
       fn: (s: State) => void,
@@ -82,7 +95,7 @@ export function Provider({ children }: { children: React.ReactNode }) {
     ): Promise<boolean> =>
       new Promise((resolve) => {
         queue.current = queue.current.then(async () => {
-          if (!initialized.current) {
+          if (!active.current || !initialized.current) {
             resolve(false);
             return;
           }
@@ -90,11 +103,12 @@ export function Provider({ children }: { children: React.ReactNode }) {
           try {
             const next = JSON.parse(JSON.stringify(current.current)) as State;
             fn(next);
-            await repository.commit(next);
+            await backend.commit(next);
             current.current = next;
             setState(next);
             setError("");
-            if (options?.syncNotifications !== false) await sync(next);
+            if (active.current && options?.syncNotifications !== false)
+              await sync(next);
             resolve(true);
           } catch (e) {
             console.error(
@@ -113,19 +127,25 @@ export function Provider({ children }: { children: React.ReactNode }) {
           }
         });
       }),
-    [sync],
+    [backend, sync],
   );
   useEffect(() => {
-    void Promise.resolve().then(reload);
+    active.current = true;
+    void reload();
+    const refresh = () => {
+      if (backend === repository) void mutate((s) => generate(s));
+      else void reload();
+    };
     const sub = AppState.addEventListener("change", (v) => {
-      if (v === "active") void mutate((s) => generate(s));
+      if (v === "active") refresh();
     });
-    const timer = setInterval(() => void mutate((s) => generate(s)), 60000);
+    const timer = setInterval(refresh, 60000);
     return () => {
+      active.current = false;
       sub.remove();
       clearInterval(timer);
     };
-  }, [reload, mutate]);
+  }, [backend, reload, mutate]);
   return (
     <Context.Provider
       value={{

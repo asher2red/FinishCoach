@@ -1,6 +1,19 @@
 // Generated from localization/messages.csv. DO NOT EDIT.
 export const resources = {
   "ko": {
+    "account.back": "설정으로 돌아가기",
+    "account.conflict": "다른 기기에서 데이터가 변경되었습니다. 계정 데이터를 새로고침한 뒤 다시 시도하세요.",
+    "account.connecting": "로그인을 완료하는 중…",
+    "account.google": "Google로 계속하기",
+    "account.guest": "게스트 모드 · 데이터는 이 기기에만 저장됩니다.",
+    "account.import": "이 기기의 게스트 데이터 가져오기",
+    "account.loginFailed": "계정을 연결하지 못했습니다. 잠시 후 다시 시도하세요.",
+    "account.noGuestData": "가져올 게스트 데이터가 없습니다.",
+    "account.online": "같은 계정으로 로그인한 기기에서 루틴과 기록을 공유합니다.",
+    "account.providerUnavailable": "이 로그인 방식은 아직 설정되지 않았습니다.",
+    "account.refresh": "계정 데이터 새로고침",
+    "account.signOut": "로그아웃",
+    "account.title": "내 계정",
     "analytics.dashboard.active.days.in.this.week": "조회 주간의 실행일",
     "analytics.dashboard.activity.time.this.week": "이번 주 실행 시간",
     "analytics.dashboard.completed.activities": "· 완료 횟수",
@@ -371,6 +384,19 @@ export const resources = {
     "widget.watch": "보고 있다."
   },
   "en": {
+    "account.back": "Back to settings",
+    "account.conflict": "Data changed on another device. Refresh account data and try again.",
+    "account.connecting": "Completing sign-in…",
+    "account.google": "Continue with Google",
+    "account.guest": "Guest mode · Data stays on this device.",
+    "account.import": "Import guest data from this device",
+    "account.loginFailed": "Could not connect the account. Try again in a moment.",
+    "account.noGuestData": "There is no guest data to import.",
+    "account.online": "Share routines and records across devices signed in to this account.",
+    "account.providerUnavailable": "This sign-in method has not been configured yet.",
+    "account.refresh": "Refresh account data",
+    "account.signOut": "Sign out",
+    "account.title": "Account",
     "analytics.dashboard.active.days.in.this.week": "Active days in this week",
     "analytics.dashboard.activity.time.this.week": "Activity time this week",
     "analytics.dashboard.completed.activities": "· completed activities",
@@ -744,6 +770,19 @@ export const resources = {
 export type Locale = keyof typeof resources;
 export type MessageKey = keyof typeof resources.ko;
 export interface MessageParams {
+  "account.back": Record<never, never>;
+  "account.conflict": Record<never, never>;
+  "account.connecting": Record<never, never>;
+  "account.google": Record<never, never>;
+  "account.guest": Record<never, never>;
+  "account.import": Record<never, never>;
+  "account.loginFailed": Record<never, never>;
+  "account.noGuestData": Record<never, never>;
+  "account.online": Record<never, never>;
+  "account.providerUnavailable": Record<never, never>;
+  "account.refresh": Record<never, never>;
+  "account.signOut": Record<never, never>;
+  "account.title": Record<never, never>;
   "analytics.dashboard.active.days.in.this.week": Record<never, never>;
   "analytics.dashboard.activity.time.this.week": Record<never, never>;
   "analytics.dashboard.completed.activities": Record<never, never>;
