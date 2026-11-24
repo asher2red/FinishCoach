@@ -52,14 +52,14 @@ describe("widget progress and safe expiration", () => {
     expect(makeWidgetSnapshot(state, "en", now)).toMatchObject({
       done: 1,
       remaining: 0,
-      title: "Today’s routines(0/1)",
+      title: "Today’s to-dos · 100%",
       items: [{ id, title: "내 활동", completed: true }],
     });
     undo(state, state.logs[0].id);
     expect(makeWidgetSnapshot(state, "ko", now)).toMatchObject({
       done: 0,
       remaining: 1,
-      title: "오늘 루틴(1/1)",
+      title: "오늘 할 일 · 0%",
       items: [{ id, title: "내 활동", completed: false }],
     });
     expect(state.routines[0].title).toBe("내 활동");
@@ -95,7 +95,7 @@ describe("widget progress and safe expiration", () => {
     expect(snapshot).toMatchObject({
       status: "current",
       items: [],
-      title: "Today’s routines(0/0)",
+      title: "Today’s to-dos · 0%",
       locale: "en",
       url: "finishcoach:///",
     });
@@ -111,7 +111,7 @@ describe("widget progress and safe expiration", () => {
     expect(expiredSnapshot(snapshot)).toMatchObject({
       status: "stale",
       items: [],
-      title: "Today’s routines(—/—)",
+      title: "Today’s to-dos",
       empty: "Open the app to refresh today’s routines.",
     });
   });

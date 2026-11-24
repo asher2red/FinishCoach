@@ -17,6 +17,9 @@ const mocks = vi.hoisted(() => ({
   permission: vi.fn(),
   request: vi.fn(),
   cancel: vi.fn(),
+  pending: vi.fn(),
+  exact: vi.fn(),
+  requestExact: vi.fn(),
   schedule: vi.fn(),
   channel: vi.fn(),
   platform: { OS: "android" },
@@ -26,16 +29,21 @@ vi.mock("expo-notifications", () => ({
   setNotificationHandler: vi.fn(),
   getPermissionsAsync: mocks.permission,
   requestPermissionsAsync: mocks.request,
-  cancelAllScheduledNotificationsAsync: mocks.cancel,
+  cancelScheduledNotificationAsync: mocks.cancel,
+  getAllScheduledNotificationsAsync: mocks.pending,
   scheduleNotificationAsync: mocks.schedule,
   setNotificationChannelAsync: mocks.channel,
   AndroidImportance: { DEFAULT: 3 },
   SchedulableTriggerInputTypes: { DATE: "date" },
   IosAuthorizationStatus: { PROVISIONAL: 3 },
-  getExactAlarmPermissionsAsync: vi.fn(async () => ({ granted: false })),
+  getExactAlarmPermissionsAsync: mocks.exact,
+  requestExactAlarmPermissionsAsync: mocks.requestExact,
 }));
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
+  mocks.pending.mockResolvedValue([]);
+  mocks.exact.mockResolvedValue({ granted: false });
+  mocks.requestExact.mockResolvedValue({ granted: false });
   mocks.platform.OS = "android";
   mocks.permission.mockResolvedValue({ granted: true });
   mocks.request.mockResolvedValue({ granted: true });
@@ -66,13 +74,16 @@ it("schedules only active future planned reminders and cancels disabled schedule
   };
   saveRoutine(s, r);
   await reconcileNotifications(s);
-  expect(mocks.cancel).toHaveBeenCalledOnce();
+  expect(mocks.cancel).not.toHaveBeenCalled();
   expect(mocks.schedule).toHaveBeenCalledTimes(30);
+  mocks.pending.mockResolvedValue(
+    mocks.schedule.mock.calls.map(([request]) => request),
+  );
   saveRoutine(s, { ...s.routines[0], isActive: false });
   mocks.schedule.mockClear();
   await reconcileNotifications(s);
   expect(mocks.schedule).not.toHaveBeenCalled();
-  expect(mocks.cancel).toHaveBeenCalledTimes(2);
+  expect(mocks.cancel).toHaveBeenCalledTimes(30);
 });
 
 it("applies all four global sound and vibration combinations with bounded channels", async () => {
@@ -121,7 +132,8 @@ it("applies all four global sound and vibration combinations with bounded channe
 });
 it("reconciles settings changes without duplicate pending notification identifiers", async () => {
   const active = new Map();
-  mocks.cancel.mockImplementation(async () => active.clear());
+  mocks.pending.mockImplementation(async () => [...active.values()]);
+  mocks.cancel.mockImplementation(async (id) => active.delete(id));
   mocks.schedule.mockImplementation(async (notification) =>
     active.set(notification.identifier, notification),
   );
@@ -149,6 +161,8 @@ it("reconciles settings changes without duplicate pending notification identifie
   };
   await Promise.all([reconcileNotifications(s), reconcileNotifications(s)]);
   expect(active.size).toBe(s.occurrences.length);
+  expect(mocks.schedule).toHaveBeenCalledTimes(2 * s.occurrences.length);
+  expect(mocks.cancel).not.toHaveBeenCalled();
   expect([...active.values()].every((n) => n.content.sound === false)).toBe(
     true,
   );
@@ -216,4 +230,71 @@ it("changes channel language without changing reminder identity or delivery", as
     name: expect.any(String),
   });
   expect(englishChannel[1].name).not.toBe(koreanChannel[1].name);
+});
+
+it("replaces approximate reminders after exact alarm access is granted", async () => {
+  const state = emptyState();
+  const routine: Routine = {
+    ...stamp(),
+    title: "Reminder",
+    category: "Other",
+    description: null,
+    frequencyType: "once",
+    weeklyTarget: null,
+    preferredDays: [],
+    durationMinutes: null,
+    reminderTime: "18:00",
+    startDate: addDays(localDate(), 1),
+    endDate: null,
+    isActive: true,
+  };
+  saveRoutine(state, routine);
+  await reconcileNotifications(state);
+  const approximate = mocks.schedule.mock.calls[0][0];
+  expect(approximate.trigger.delivery).toBe("bestEffort");
+  mocks.pending.mockResolvedValue([approximate]);
+  mocks.requestExact.mockResolvedValue({ granted: true });
+  await requestPermission();
+  expect(mocks.requestExact).toHaveBeenCalledOnce();
+  mocks.exact.mockResolvedValue({ granted: true });
+  await reconcileNotifications(state);
+  expect(mocks.schedule.mock.calls[1][0]).toMatchObject({
+    identifier: approximate.identifier,
+    trigger: { date: approximate.trigger.date, delivery: "alarmClock" },
+  });
+});
+
+it("leaves a due reminder pending for OS delivery and never schedules it again", async () => {
+  const state = emptyState();
+  const routine: Routine = {
+    ...stamp(),
+    title: "Due reminder",
+    category: "Other",
+    description: null,
+    frequencyType: "once",
+    weeklyTarget: null,
+    preferredDays: [],
+    durationMinutes: null,
+    reminderTime: "18:00",
+    startDate: addDays(localDate(), 1),
+    endDate: null,
+    isActive: true,
+  };
+  saveRoutine(state, routine);
+  await reconcileNotifications(state);
+  const request = mocks.schedule.mock.calls[0][0];
+  mocks.pending.mockResolvedValue([request]);
+  const time = vi
+    .spyOn(Date, "now")
+    .mockReturnValue(request.trigger.date.getTime());
+  try {
+    await reconcileNotifications(state);
+    expect(mocks.schedule).toHaveBeenCalledOnce();
+    expect(mocks.cancel).not.toHaveBeenCalled();
+    state.occurrences[0].status = "completed";
+    await reconcileNotifications(state);
+    expect(mocks.cancel).toHaveBeenCalledExactlyOnceWith(request.identifier);
+  } finally {
+    time.mockRestore();
+  }
 });

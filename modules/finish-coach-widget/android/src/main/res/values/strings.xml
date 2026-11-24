@@ -1,6 +1,6 @@
 <!-- Generated from localization/messages.csv. Do not edit. -->
 <resources>
   <string name="finish_widget_stale">Open the app to refresh today’s routines.</string>
-  <string name="finish_widget_title">Today’s routines</string>
-  <string name="finish_widget_description">See today’s routines and remaining count.</string>
+  <string name="finish_widget_title">Today’s to-dos</string>
+  <string name="finish_widget_description">See today’s to-do list and completion progress.</string>
 </resources>

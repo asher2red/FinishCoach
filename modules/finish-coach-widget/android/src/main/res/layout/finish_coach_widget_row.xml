@@ -1,4 +1,32 @@
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
- android:id="@+id/coach_task" android:layout_width="match_parent" android:layout_height="wrap_content"
- android:minHeight="44dp" android:gravity="center_vertical" android:paddingVertical="8dp"
- android:textSize="14sp" android:textColor="#000000" android:singleLine="true" android:maxLines="1" android:ellipsize="end" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/coach_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="38dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="3dp"
+    android:paddingVertical="4dp"
+    android:background="@drawable/finish_widget_row">
+    <TextView
+        android:id="@+id/coach_check"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginEnd="8dp"
+        android:includeFontPadding="false"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="#206044"
+        android:importantForAccessibility="no"
+        android:background="@drawable/finish_widget_check_open" />
+    <TextView
+        android:id="@+id/coach_task"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textColor="#3C321D"
+        android:maxLines="1"
+        android:ellipsize="end" />
+</LinearLayout>

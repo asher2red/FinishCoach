@@ -10,6 +10,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.AtomicFile
+import android.view.View
 import android.widget.RemoteViews
 import java.io.File
 import java.text.SimpleDateFormat
@@ -34,10 +35,12 @@ internal fun routineRow(context: Context, item: JSONObject, locale: String): Rem
   val title = item.optString("title").replace('\n', ' ').replace('\r', ' ')
   return RemoteViews(context.packageName, R.layout.finish_coach_widget_row).apply {
     setTextViewText(R.id.coach_task, title)
-    setTextColor(R.id.coach_task, if (completed) android.graphics.Color.parseColor("#16703D") else android.graphics.Color.BLACK)
+    setTextViewText(R.id.coach_check, if (completed) "\u2713" else "")
+    val check = if (completed) R.drawable.finish_widget_check_done else R.drawable.finish_widget_check_open
+    setInt(R.id.coach_check, "setBackgroundResource", check)
     val state = if (locale == "ko") { if (completed) "완료" else "미완료" } else { if (completed) "Completed" else "Not completed" }
     setContentDescription(R.id.coach_task, "$title, $state")
-    setOnClickFillInIntent(R.id.coach_task, Intent())
+    setOnClickFillInIntent(R.id.coach_row, Intent())
   }
 }
 class CoachWidgetProvider : AppWidgetProvider() {
@@ -63,7 +66,9 @@ class CoachWidgetProvider : AppWidgetProvider() {
       val current = isRoutineSnapshotCurrent(snapshot)
       val fallback = context.getString(R.string.finish_widget_stale)
       val titleBase = snapshot?.optString("titleBase", context.getString(R.string.finish_widget_title)) ?: context.getString(R.string.finish_widget_title)
-      val title = if (current) snapshot!!.optString("title") else "$titleBase(—/—)"
+      val done = snapshot?.optInt("done") ?: 0
+      val total = snapshot?.optInt("total") ?: 0
+      val percent = if (total > 0) ((done * 100.0 / total) + 0.5).toInt().coerceIn(0, 100) else 0
       val empty = if (current) snapshot!!.optString("empty") else snapshot?.optString("staleLine", fallback) ?: fallback
       val items = if (current) snapshot!!.optJSONArray("items") else null
       val launch = Intent(Intent.ACTION_VIEW, Uri.parse("finishcoach:///")).setPackage(context.packageName)
@@ -73,10 +78,15 @@ class CoachWidgetProvider : AppWidgetProvider() {
       val rowOpen = PendingIntent.getActivity(context, 8293, launch, PendingIntent.FLAG_UPDATE_CURRENT or mutable)
       ids.forEach { id ->
         val views = RemoteViews(context.packageName, R.layout.finish_coach_widget)
-        views.setTextViewText(R.id.coach_title, title)
+        views.setTextViewText(R.id.coach_title, titleBase)
+        val progressVisibility = if (current) View.VISIBLE else View.GONE
+        views.setViewVisibility(R.id.coach_percent, progressVisibility)
+        views.setViewVisibility(R.id.coach_progress, progressVisibility)
+        views.setTextViewText(R.id.coach_percent, "$percent%")
+        views.setProgressBar(R.id.coach_progress, 100, percent, false)
         views.setContentDescription(R.id.coach_title, if (current) snapshot!!.optString("accessibility") else empty)
         views.setTextViewText(R.id.coach_empty, empty)
-        views.setOnClickPendingIntent(R.id.coach_title, open)
+        views.setOnClickPendingIntent(R.id.coach_header, open)
         views.setOnClickPendingIntent(R.id.coach_empty, open)
         views.setEmptyView(R.id.coach_list, R.id.coach_empty)
         views.setPendingIntentTemplate(R.id.coach_list, rowOpen)

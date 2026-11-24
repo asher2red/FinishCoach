@@ -33,13 +33,13 @@ export function makeWidgetSnapshot(
   now = new Date(),
 ): WidgetSnapshot {
   const date = localDate(now);
-  const { items, done, total } = todayProgress(state, date);
+  const { items, done, total, percent } = todayProgress(state, date);
   const titles = new Map(
     state.routines.map((routine) => [routine.id, routine.title]),
   );
   const remaining = total - done;
   const titleBase = translate(locale, "widget.routines");
-  const title = `${titleBase}(${remaining}/${total})`;
+  const title = `${titleBase} · ${percent}%`;
   const midnight = new Date(now);
   midnight.setHours(24, 0, 0, 0);
   return {
@@ -79,7 +79,7 @@ export function expiredSnapshot(snapshot: WidgetSnapshot): WidgetSnapshot {
     total: 0,
     items: [],
     status: "stale",
-    title: `${snapshot.titleBase}(—/—)`,
+    title: snapshot.titleBase,
     empty: snapshot.staleLine,
     accessibility: snapshot.staleLine,
   };

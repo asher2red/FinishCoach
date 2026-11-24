@@ -208,7 +208,7 @@ notifications.channelName,루틴 · 소리 {sound} · 진동 {vibration},Routine
 notifications.on,켬,On,App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.,src/services/notifications.ts
 notifications.off,끔,Off,App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.,src/services/notifications.ts
 notifications.notifications.are.blocked.you.can.change.this.in.device,알림 권한이 거부되었습니다. 기기 설정에서 변경할 수 있습니다.,Notifications are blocked. You can change this in device settings.,App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.,src/services/notifications.ts
-notifications.notifications.are.allowed.device.power.saving.settings.may.delay,알림이 허용되었습니다. 기기 절전 정책에 따라 전달이 늦어질 수 있습니다.,Notifications are allowed. Device power-saving settings may delay delivery.,App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.,src/services/notifications.ts
+notifications.notifications.are.allowed.device.power.saving.settings.may.delay,알람 및 리마인더 권한을 허용하면 설정한 시간에 알림을 받을 수 있습니다. 권한이 없으면 알림이 늦어질 수 있습니다.,Allow Alarms & reminders for on-time delivery. Notifications may arrive late without this permission.,App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.,src/services/notifications.ts
 notifications.notifications.are.allowed,알림이 허용되었습니다.,Notifications are allowed.,App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.,src/services/notifications.ts
 notifications.this.browser.does.not.support.notifications,이 브라우저는 알림을 지원하지 않습니다.,This browser does not support notifications.,App display text in src/services/notifications.web.ts. Keep named placeholders and date format tokens unchanged.,src/services/notifications.web.ts
 notifications.notifications.allowed.delivered.only.while.this.page.is.open,알림 허용됨 · 이 페이지가 열려 있을 때만 전달됩니다.,Notifications allowed · Delivered only while this page is open.,App display text in src/services/notifications.web.ts. Keep named placeholders and date format tokens unchanged.,src/services/notifications.web.ts
@@ -360,8 +360,8 @@ widget.stale,오늘 현황 확인,Check today’s progress,Home screen coach wid
 widget.open,눌러서 오늘 화면 열기,Tap to open Today,Home screen coach widget,src/widgets/snapshot.ts
 widget.accessibility,오늘 달성률 {percent}%. {total}개 중 {done}개 완료.,Today: {percent}%. {done} of {total} completed.,Home screen coach widget,src/widgets/snapshot.ts
 widget.title,도베르만 교관,Doberman Coach,Home screen coach widget,src/widgets/snapshot.ts
-widget.description,오늘 루틴 목록과 남은 개수를 확인하세요.,See today’s routines and remaining count.,Home screen coach widget,src/widgets/snapshot.ts
-widget.routines,오늘 루틴,Today’s routines,Today routines home screen widget,src/widgets/snapshot.ts
+widget.description,오늘 할 일 목록과 완료율을 확인하세요.,See today’s to-do list and completion progress.,Home screen coach widget,src/widgets/snapshot.ts
+widget.routines,오늘 할 일,Today’s to-dos,Today routines home screen widget,src/widgets/snapshot.ts
 widget.noRoutines,오늘 예정된 루틴이 없습니다.,No routines scheduled today.,Today routines home screen widget,src/widgets/snapshot.ts
 widget.refreshRoutines,앱을 열어 오늘 루틴을 불러오세요.,Open the app to refresh today’s routines.,Today routines home screen widget,src/widgets/snapshot.ts
 widget.more,더 보기,View all,Today routines home screen widget,src/widgets/snapshot.ts

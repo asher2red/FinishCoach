@@ -16,13 +16,13 @@ it("sends an atomic-file protocol with current and neutral midnight entries", ()
   expect(payload.version).toBe(1);
   expect(payload.entries).toHaveLength(2);
   expect(payload.entries[0].props).toMatchObject({
-    title: "오늘 루틴(0/0)",
+    title: "오늘 할 일 · 0%",
     items: [],
     url: "finishcoach:///",
   });
   expect(payload.entries[1]).toMatchObject({
     timestamp: snapshot.expiresAt,
-    props: { status: "stale", items: [], title: "오늘 루틴(—/—)" },
+    props: { status: "stale", items: [], title: "오늘 할 일" },
   });
 });
 it("uses shared-file provider without mascot image resources", () => {

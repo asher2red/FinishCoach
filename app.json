@@ -21,6 +21,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize",
+      "permissions": ["android.permission.SCHEDULE_EXACT_ALARM"],
       "package": "com.finishcoach.app"
     },
     "web": {
@@ -64,7 +65,7 @@
             {
               "name": "FinishCoachWidget",
               "displayName": "Finish Coach",
-              "description": "Today’s routines and remaining count.",
+              "description": "Today’s to-do list and completion progress.",
               "ios": {
                 "supportedFamilies": [
                   "systemSmall",

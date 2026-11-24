@@ -4,7 +4,12 @@ import * as Notifications from "expo-notifications";
 import { AndroidImportance, IosAuthorizationStatus } from "expo-notifications";
 import { Platform } from "react-native";
 import { State } from "../domain/model";
-import { defaultSettings, AppSettings, channelId } from "../domain/settings";
+import {
+  defaultSettings,
+  AppSettings,
+  channelId,
+  normalizeSettings,
+} from "../domain/settings";
 import { notificationPlan } from "./notification-plan";
 let currentSettings = defaultSettings();
 let queue = Promise.resolve();
@@ -63,7 +68,7 @@ export async function requestPermission(): Promise<Message> {
     );
   if (
     Platform.OS === "android" &&
-    !(await Notifications.getExactAlarmPermissionsAsync()).granted
+    !(await Notifications.requestExactAlarmPermissionsAsync()).granted
   )
     return message(
       "notifications.notifications.are.allowed.device.power.saving.settings.may.delay",
@@ -71,22 +76,50 @@ export async function requestPermission(): Promise<Message> {
   return message("notifications.notifications.are.allowed");
 }
 export function reconcileNotifications(s: State): Promise<void> {
-  const plan = notificationPlan(s);
   const run = queue
     .catch(() => {})
     .then(async () => {
-      currentSettings = plan.settings;
+      currentSettings = normalizeSettings(s.settings);
       if (!allows(await Notifications.getPermissionsAsync())) return;
-      await prepareChannel(plan.settings);
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      for (const item of plan.items)
+      await prepareChannel(currentSettings);
+      const android = Platform.OS === "android";
+      const exact =
+        android &&
+        (await Notifications.getExactAlarmPermissionsAsync()).granted;
+      const delivery = exact ? "alarmClock" : "bestEffort";
+      const pending = await Notifications.getAllScheduledNotificationsAsync();
+      const existing = new Map(
+        pending.map((request) => [request.identifier, request]),
+      );
+      const plan = notificationPlan(s, Date.now(), new Set(existing.keys()));
+      const desired = new Set(plan.items.map((item) => item.id));
+      for (const request of pending) {
+        if (!desired.has(request.identifier))
+          await Notifications.cancelScheduledNotificationAsync(
+            request.identifier,
+          );
+      }
+
+      for (const item of plan.items) {
+        const signature = JSON.stringify([
+          item.date.getTime(),
+          item.title,
+          plan.channelId,
+          delivery,
+        ]);
+        if (
+          existing.get(item.id)?.content.data?.reminderSignature === signature
+        )
+          continue;
+        if (item.date.getTime() <= Date.now()) continue;
         await Notifications.scheduleNotificationAsync({
           identifier: item.id,
           content: {
             title: "Finish Coach",
             body: item.title,
+            data: { reminderSignature: signature },
             sound: plan.settings.soundEnabled ? "default" : false,
-            ...(Platform.OS === "android"
+            ...(android
               ? {
                   vibrate: plan.settings.vibrationEnabled
                     ? [0, 250, 150, 250]
@@ -98,9 +131,10 @@ export function reconcileNotifications(s: State): Promise<void> {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
             date: item.date,
             channelId: plan.channelId,
-            delivery: "bestEffort",
+            delivery,
           },
         });
+      }
     });
   queue = run;
   return run;

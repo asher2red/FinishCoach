@@ -1,6 +1,10 @@
 import { State } from "../domain/model";
 import { channelId, normalizeSettings } from "../domain/settings";
-export function notificationPlan(s: State, now = Date.now()) {
+export function notificationPlan(
+  s: State,
+  now = Date.now(),
+  pendingIds: ReadonlySet<string> = new Set(),
+) {
   const settings = normalizeSettings(s.settings),
     routines = new Map(s.routines.map((r) => [r.id, r]));
   return {
@@ -11,7 +15,7 @@ export function notificationPlan(s: State, now = Date.now()) {
         const r = routines.get(o.routineId);
         return (
           o.status === "planned" &&
-          new Date(o.scheduledAt).getTime() > now &&
+          (new Date(o.scheduledAt).getTime() > now || pendingIds.has(o.id)) &&
           r?.isActive &&
           !r.deletedAt &&
           !!r.reminderTime

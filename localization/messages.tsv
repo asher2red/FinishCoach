@@ -213,7 +213,7 @@ notification.settings.vibration	진동	Vibration	App display text in src/ui/Noti
 notifications.channelName	루틴 · 소리 {sound} · 진동 {vibration}	Routines · Sound {sound} · Vibration {vibration}	App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.	src/services/notifications.ts
 notifications.notifications.allowed.delivered.only.while.this.page.is.open	알림 허용됨 · 이 페이지가 열려 있을 때만 전달됩니다.	Notifications allowed · Delivered only while this page is open.	App display text in src/services/notifications.web.ts. Keep named placeholders and date format tokens unchanged.	src/services/notifications.web.ts
 notifications.notifications.are.allowed	알림이 허용되었습니다.	Notifications are allowed.	App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.	src/services/notifications.ts
-notifications.notifications.are.allowed.device.power.saving.settings.may.delay	알림이 허용되었습니다. 기기 절전 정책에 따라 전달이 늦어질 수 있습니다.	Notifications are allowed. Device power-saving settings may delay delivery.	App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.	src/services/notifications.ts
+notifications.notifications.are.allowed.device.power.saving.settings.may.delay	알람 및 리마인더 권한을 허용하면 설정한 시간에 알림을 받을 수 있습니다. 권한이 없으면 알림이 늦어질 수 있습니다.	Allow Alarms & reminders for on-time delivery. Notifications may arrive late without this permission.	App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.	src/services/notifications.ts
 notifications.notifications.are.blocked.you.can.change.this.in.device	알림 권한이 거부되었습니다. 기기 설정에서 변경할 수 있습니다.	Notifications are blocked. You can change this in device settings.	App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.	src/services/notifications.ts
 notifications.notifications.are.not.allowed	알림이 허용되지 않았습니다.	Notifications are not allowed.	App display text in src/services/notifications.web.ts. Keep named placeholders and date format tokens unchanged.	src/services/notifications.web.ts
 notifications.off	끔	Off	App display text in src/services/notifications.ts. Keep named placeholders and date format tokens unchanged.	src/services/notifications.ts
@@ -351,7 +351,7 @@ units.minuteCount.plural.other	{count}분	{count} min	Complete UI message; named
 units.minutes	분	min	App display text in src/screens/Coach.tsx. Keep named placeholders and date format tokens unchanged.	src/screens/Coach.tsx
 widget.accessibility	오늘 달성률 {percent}%. {total}개 중 {done}개 완료.	Today: {percent}%. {done} of {total} completed.	Home screen coach widget	src/widgets/snapshot.ts
 widget.approve	좋아. 오늘은 인정.	Well done. Approved.	Home screen coach widget	src/widgets/snapshot.ts
-widget.description	오늘 루틴 목록과 남은 개수를 확인하세요.	See today’s routines and remaining count.	Home screen coach widget	src/widgets/snapshot.ts
+widget.description	오늘 할 일 목록과 완료율을 확인하세요.	See today’s to-do list and completion progress.	Home screen coach widget	src/widgets/snapshot.ts
 widget.empty	오늘 작전부터 세워볼까?	Plan today’s mission?	Home screen coach widget	src/widgets/snapshot.ts
 widget.expect	마지막까지 간다.	Finish strong.	Home screen coach widget	src/widgets/snapshot.ts
 widget.listAccessibility	오늘 루틴, 남은 {remaining}개, 전체 {total}개, 완료 {done}개. 탭하여 오늘 화면 열기.	Today’s routines: {remaining} remaining, {total} total, {done} completed. Tap to open Today.	Today routines home screen widget	src/widgets/snapshot.ts
@@ -360,7 +360,7 @@ widget.noRoutines	오늘 예정된 루틴이 없습니다.	No routines scheduled
 widget.observe	절반 왔다. 방심 금지.	Halfway. Stay sharp.	Home screen coach widget	src/widgets/snapshot.ts
 widget.open	눌러서 오늘 화면 열기	Tap to open Today	Home screen coach widget	src/widgets/snapshot.ts
 widget.refreshRoutines	앱을 열어 오늘 루틴을 불러오세요.	Open the app to refresh today’s routines.	Today routines home screen widget	src/widgets/snapshot.ts
-widget.routines	오늘 루틴	Today’s routines	Today routines home screen widget	src/widgets/snapshot.ts
+widget.routines	오늘 할 일	Today’s to-dos	Today routines home screen widget	src/widgets/snapshot.ts
 widget.stale	오늘 현황 확인	Check today’s progress	Home screen coach widget	src/widgets/snapshot.ts
 widget.started	첫 발은 뗐군.	A start. Keep going.	Home screen coach widget	src/widgets/snapshot.ts
 widget.strict	계속 움직여.	Keep moving.	Home screen coach widget	src/widgets/snapshot.ts

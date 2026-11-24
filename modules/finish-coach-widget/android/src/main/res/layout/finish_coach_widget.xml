@@ -1,13 +1,73 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
- android:id="@+id/coach_root" android:layout_width="match_parent" android:layout_height="match_parent"
- android:orientation="vertical" android:padding="12dp" android:background="@drawable/finish_widget_background">
- <TextView android:id="@+id/coach_title" android:layout_width="match_parent" android:layout_height="wrap_content"
-  android:minHeight="44dp" android:gravity="center_vertical" android:textSize="16sp" android:textStyle="bold"
-  android:textColor="#000000" android:maxLines="1" android:ellipsize="end" android:text="@string/finish_widget_title" />
- <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-  <ListView android:id="@+id/coach_list" android:layout_width="match_parent" android:layout_height="match_parent"
-   android:divider="@android:color/transparent" android:dividerHeight="0dp" android:scrollbars="vertical" />
-  <TextView android:id="@+id/coach_empty" android:layout_width="match_parent" android:layout_height="match_parent"
-   android:gravity="center_vertical" android:textSize="14sp" android:textColor="#000000" android:text="@string/finish_widget_stale" />
- </FrameLayout>
+    android:id="@+id/coach_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="34dp"
+    android:paddingEnd="14dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp"
+    android:background="@drawable/finish_widget_background">
+    <LinearLayout
+        android:id="@+id/coach_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="30dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/coach_title"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#3C321D"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="@string/finish_widget_title" />
+        <TextView
+            android:id="@+id/coach_percent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="3dp"
+            android:background="@drawable/finish_widget_percent"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#674709"
+            android:importantForAccessibility="no"
+            android:visibility="gone" />
+    </LinearLayout>
+    <ProgressBar
+        android:id="@+id/coach_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginTop="7dp"
+        android:layout_marginBottom="8dp"
+        android:indeterminate="false"
+        android:progressDrawable="@drawable/finish_widget_progress"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        <ListView
+            android:id="@+id/coach_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:scrollbars="vertical" />
+        <TextView
+            android:id="@+id/coach_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:textSize="13sp"
+            android:textColor="#625537"
+            android:text="@string/finish_widget_stale" />
+    </FrameLayout>
 </LinearLayout>
