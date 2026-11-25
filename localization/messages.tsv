@@ -12,6 +12,30 @@ account.providerUnavailable	이 로그인 방식은 아직 설정되지 않았�
 account.refresh	계정 데이터 새로고침	Refresh account data	Account settings	src/ui/AccountSettings.tsx
 account.signOut	로그아웃	Sign out	Account settings	src/ui/AccountSettings.tsx
 account.title	내 계정	Account	Account settings	src/ui/AccountSettings.tsx
+achievements.activeDays	30일 중 {count}일에 할 일을 완료했어요.	You logged activity on {count} of 30 days.	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.almost	이제 조금만 더!	Almost there!	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.daysGoal	활동 30일 목표	30 active days	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.dayUnit	일	days	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.empty	할 일을 완료하면 달력에 기록이 남아요.	Your completed activities will appear here.	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.entries	완료 {count}개	{count} completions	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.entryCopy	내가 해낸 일과 목표까지 달려온 거리를 한눈에 봐요.	See what you’ve done and how far you’ve come.	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.finish	목표	Finish	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.finishedProject	완료한 프로젝트	Finished project	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.firstStep	첫발을 내디뎌 볼까요?	Ready for your first step?	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.last30	최근 30일 기록	Last 30 days	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.milestoneGoal	프로젝트 마일스톤	Project milestones	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.minutes	{count}분	{count} min	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.open	달성률 확인하기	View my progress	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.reached	결승선 도착!	You crossed the finish line!	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.reachedNote	여기까지 달려오느라 고생했어요. 해낸 일을 잠깐 돌아봐요.	You put in the work. Take a moment to see what you’ve done.	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.remaining	목표까지 {count}{unit} 남았어요.	Still to go · {count} {unit}	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.replay	다시 달리기	Replay	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.sessionUnit	회	times	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.soFar	벌써 여기까지 왔어요!	Look how far you’ve come!	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.start	출발	Start	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.stepUnit	단계	steps	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.title	달려온 기록	My progress	Achievement progress and activity history	src/ui/Achievements.tsx
+achievements.weeklyGoal	이번 주 루틴 목표	Weekly routine goal	Achievement progress and activity history	src/ui/Achievements.tsx
 analytics.dashboard.active.days.in.this.week	조회 주간의 실행일	Active days in this week	App display text in src/ui/AnalyticsDashboard.tsx. Keep named placeholders and date format tokens unchanged.	src/ui/AnalyticsDashboard.tsx
 analytics.dashboard.activity.time.this.week	이번 주 실행 시간	Activity time this week	App display text in src/ui/AnalyticsDashboard.tsx. Keep named placeholders and date format tokens unchanged.	src/ui/AnalyticsDashboard.tsx
 analytics.dashboard.completed.activities	· 완료 횟수	· completed activities	App display text in src/ui/AnalyticsDashboard.tsx. Keep named placeholders and date format tokens unchanged.	src/ui/AnalyticsDashboard.tsx

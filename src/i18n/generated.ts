@@ -14,6 +14,30 @@ export const resources = {
     "account.refresh": "계정 데이터 새로고침",
     "account.signOut": "로그아웃",
     "account.title": "내 계정",
+    "achievements.activeDays": "30일 중 {count}일에 할 일을 완료했어요.",
+    "achievements.almost": "이제 조금만 더!",
+    "achievements.daysGoal": "활동 30일 목표",
+    "achievements.dayUnit": "일",
+    "achievements.empty": "할 일을 완료하면 달력에 기록이 남아요.",
+    "achievements.entries": "완료 {count}개",
+    "achievements.entryCopy": "내가 해낸 일과 목표까지 달려온 거리를 한눈에 봐요.",
+    "achievements.finish": "목표",
+    "achievements.finishedProject": "완료한 프로젝트",
+    "achievements.firstStep": "첫발을 내디뎌 볼까요?",
+    "achievements.last30": "최근 30일 기록",
+    "achievements.milestoneGoal": "프로젝트 마일스톤",
+    "achievements.minutes": "{count}분",
+    "achievements.open": "달성률 확인하기",
+    "achievements.reached": "결승선 도착!",
+    "achievements.reachedNote": "여기까지 달려오느라 고생했어요. 해낸 일을 잠깐 돌아봐요.",
+    "achievements.remaining": "목표까지 {count}{unit} 남았어요.",
+    "achievements.replay": "다시 달리기",
+    "achievements.sessionUnit": "회",
+    "achievements.soFar": "벌써 여기까지 왔어요!",
+    "achievements.start": "출발",
+    "achievements.stepUnit": "단계",
+    "achievements.title": "달려온 기록",
+    "achievements.weeklyGoal": "이번 주 루틴 목표",
     "analytics.dashboard.active.days.in.this.week": "조회 주간의 실행일",
     "analytics.dashboard.activity.time.this.week": "이번 주 실행 시간",
     "analytics.dashboard.completed.activities": "· 완료 횟수",
@@ -397,6 +421,30 @@ export const resources = {
     "account.refresh": "Refresh account data",
     "account.signOut": "Sign out",
     "account.title": "Account",
+    "achievements.activeDays": "You logged activity on {count} of 30 days.",
+    "achievements.almost": "Almost there!",
+    "achievements.daysGoal": "30 active days",
+    "achievements.dayUnit": "days",
+    "achievements.empty": "Your completed activities will appear here.",
+    "achievements.entries": "{count} completions",
+    "achievements.entryCopy": "See what you’ve done and how far you’ve come.",
+    "achievements.finish": "Finish",
+    "achievements.finishedProject": "Finished project",
+    "achievements.firstStep": "Ready for your first step?",
+    "achievements.last30": "Last 30 days",
+    "achievements.milestoneGoal": "Project milestones",
+    "achievements.minutes": "{count} min",
+    "achievements.open": "View my progress",
+    "achievements.reached": "You crossed the finish line!",
+    "achievements.reachedNote": "You put in the work. Take a moment to see what you’ve done.",
+    "achievements.remaining": "Still to go · {count} {unit}",
+    "achievements.replay": "Replay",
+    "achievements.sessionUnit": "times",
+    "achievements.soFar": "Look how far you’ve come!",
+    "achievements.start": "Start",
+    "achievements.stepUnit": "steps",
+    "achievements.title": "My progress",
+    "achievements.weeklyGoal": "Weekly routine goal",
     "analytics.dashboard.active.days.in.this.week": "Active days in this week",
     "analytics.dashboard.activity.time.this.week": "Activity time this week",
     "analytics.dashboard.completed.activities": "· completed activities",
@@ -783,6 +831,30 @@ export interface MessageParams {
   "account.refresh": Record<never, never>;
   "account.signOut": Record<never, never>;
   "account.title": Record<never, never>;
+  "achievements.activeDays": {"count": string | number};
+  "achievements.almost": Record<never, never>;
+  "achievements.daysGoal": Record<never, never>;
+  "achievements.dayUnit": Record<never, never>;
+  "achievements.empty": Record<never, never>;
+  "achievements.entries": {"count": string | number};
+  "achievements.entryCopy": Record<never, never>;
+  "achievements.finish": Record<never, never>;
+  "achievements.finishedProject": Record<never, never>;
+  "achievements.firstStep": Record<never, never>;
+  "achievements.last30": Record<never, never>;
+  "achievements.milestoneGoal": Record<never, never>;
+  "achievements.minutes": {"count": string | number};
+  "achievements.open": Record<never, never>;
+  "achievements.reached": Record<never, never>;
+  "achievements.reachedNote": Record<never, never>;
+  "achievements.remaining": {"count": string | number; "unit": string | number};
+  "achievements.replay": Record<never, never>;
+  "achievements.sessionUnit": Record<never, never>;
+  "achievements.soFar": Record<never, never>;
+  "achievements.start": Record<never, never>;
+  "achievements.stepUnit": Record<never, never>;
+  "achievements.title": Record<never, never>;
+  "achievements.weeklyGoal": Record<never, never>;
   "analytics.dashboard.active.days.in.this.week": Record<never, never>;
   "analytics.dashboard.activity.time.this.week": Record<never, never>;
   "analytics.dashboard.completed.activities": Record<never, never>;

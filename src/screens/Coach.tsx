@@ -51,6 +51,7 @@ import { EditorScroll } from "../ui/EditorScroll";
 import { DateField } from "../ui/DateField";
 import { TimeField } from "../ui/TimeField";
 import { AnalyticsDashboard } from "../ui/AnalyticsDashboard";
+import { AchievementEntry } from "../ui/Achievements";
 import { AccountSettings } from "../ui/AccountSettings";
 import { NotificationSettings } from "../ui/NotificationSettings";
 import { shiftPeriod } from "../domain/pickers";
@@ -556,6 +557,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
                 )}
                 {page === "기록" && (
                   <>
+                    <AchievementEntry state={s} today={today} />
                     <Row>
                       {["일", "주", "월", "년"].map((p) => (
                         <Button
