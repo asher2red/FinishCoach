@@ -22,7 +22,7 @@
       "predictiveBackGestureEnabled": false,
       "softwareKeyboardLayoutMode": "resize",
       "permissions": ["android.permission.SCHEDULE_EXACT_ALARM"],
-      "package": "com.finishcoach.app"
+      "package": "com.boombaaplab.finishcoach"
     },
     "web": {
       "output": "static",
