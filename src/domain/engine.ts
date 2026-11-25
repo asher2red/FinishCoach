@@ -28,7 +28,13 @@ function removeFuturePending(s: State, routineId: string, today: string) {
       log.updatedAt = new Date().toISOString();
     }
 }
-export function generate(s: State, today = localDate(), horizon = 30): void {
+export const routineScheduleHorizon = 30;
+
+export function generate(
+  s: State,
+  today = localDate(),
+  horizon = routineScheduleHorizon,
+): void {
   const until = addDays(today, horizon);
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   for (const r of s.routines) {

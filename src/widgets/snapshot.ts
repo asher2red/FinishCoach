@@ -1,4 +1,5 @@
-import { localDate, type State } from "../domain/model";
+import { localDate, nextLocalMidnight, type State } from "../domain/model";
+import { routineScheduleHorizon } from "../domain/engine";
 import { todayProgress } from "../domain/today";
 import { translate, type Locale } from "../i18n/core";
 
@@ -27,6 +28,25 @@ export interface WidgetSnapshot {
   expiresAt: number;
   url: "finishcoach:///";
 }
+export type WidgetPublication = WidgetSnapshot & {
+  upcoming?: WidgetSnapshot[];
+};
+
+export function makeWidgetPublication(
+  state: State,
+  locale: Locale,
+  now = new Date(),
+): WidgetPublication {
+  const current = makeWidgetSnapshot(state, locale, now);
+  const upcoming: WidgetSnapshot[] = [];
+  let day = nextLocalMidnight(now);
+  for (let index = 0; index < routineScheduleHorizon; index++) {
+    upcoming.push(makeWidgetSnapshot(state, locale, day));
+    day = nextLocalMidnight(day);
+  }
+  return { ...current, upcoming };
+}
+
 export function makeWidgetSnapshot(
   state: State,
   locale: Locale,
@@ -40,8 +60,6 @@ export function makeWidgetSnapshot(
   const remaining = total - done;
   const titleBase = translate(locale, "widget.routines");
   const title = `${titleBase} · ${percent}%`;
-  const midnight = new Date(now);
-  midnight.setHours(24, 0, 0, 0);
   return {
     version: 2,
     date,
@@ -67,7 +85,7 @@ export function makeWidgetSnapshot(
     }),
     staleLine: translate(locale, "widget.refreshRoutines"),
     updatedAt: now.toISOString(),
-    expiresAt: midnight.getTime(),
+    expiresAt: nextLocalMidnight(now).getTime(),
     url: "finishcoach:///",
   };
 }

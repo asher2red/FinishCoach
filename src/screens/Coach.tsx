@@ -79,6 +79,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
 
   const {
     state: s,
+    today,
     ready,
     busy,
     error,
@@ -121,8 +122,7 @@ export default function Coach({ section = "오늘" }: { section?: string }) {
     [date, setDate] = useState(initialDate),
     [filter, setFilter] = useState("전체"),
     [archive, setArchive] = useState(false);
-  const today = localDate(),
-    n = useMemo(() => stats(s, today), [s, today]),
+  const n = useMemo(() => stats(s, today), [s, today]),
     { items, done, percent } = todayProgress(s, today);
   const title = (id: string) =>
     s.routines.find((r) => r.id === id)?.title ?? tr("coach.archived.routine");

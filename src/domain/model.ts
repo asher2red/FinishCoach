@@ -76,6 +76,11 @@ export const stamp = (): Entity => {
 };
 export const localDate = (d = new Date()): string =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+export function nextLocalMidnight(now: Date) {
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  return midnight;
+}
 export const dateAt = (date: string, time = "12:00") =>
   new Date(`${date}T${time}:00`);
 export function addDays(date: string, days: number) {

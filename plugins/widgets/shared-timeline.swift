@@ -62,7 +62,7 @@ private struct FinishCoachFileView: View {
   var body: some View {
     if let layout = WidgetsLayoutRegistry.layout(for: "FinishCoachWidget") {
       let values = getWidgetEnvironment(environment: environment).merging(["timestamp": Int(entry.date.timeIntervalSince1970 * 1000)]) { _, new in new }
-      let node = evaluateLayout(layout: layout, props: finishCoachRoutineProps(entry.props), environment: values)
+      let node = evaluateLayout(layout: layout, props: finishCoachRoutineProps(entry.props, now: entry.date), environment: values)
       let json = (try? JSONSerialization.data(withJSONObject: values)).flatMap { String(data: $0, encoding: .utf8) }
       WidgetsDynamicView(name: "FinishCoachWidget", kind: .widget, node: node, entryIndex: nil, environmentString: json)
     } else {

@@ -21,8 +21,15 @@ import org.json.JSONObject
 
 // Used by both the provider and legacy collection service. Never show yesterday's list.
 internal fun readRoutineSnapshot(context: Context): JSONObject? = runCatching {
-  JSONObject(AtomicFile(File(context.filesDir, "finish-coach-widget.json"))
+  val saved = JSONObject(AtomicFile(File(context.filesDir, "finish-coach-widget.json"))
     .openRead().bufferedReader().use { it.readText() })
+  if (isRoutineSnapshotCurrent(saved)) saved else {
+    val upcoming = saved.optJSONArray("upcoming")
+    (0 until (upcoming?.length() ?: 0))
+      .asSequence()
+      .mapNotNull { upcoming?.optJSONObject(it) }
+      .firstOrNull { isRoutineSnapshotCurrent(it) } ?: saved
+  }
 }.getOrNull()
 internal fun isRoutineSnapshotCurrent(snapshot: JSONObject?): Boolean {
   val now = System.currentTimeMillis()
@@ -48,7 +55,11 @@ class CoachWidgetProvider : AppWidgetProvider() {
   override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, options: android.os.Bundle) = refresh(context)
   override fun onReceive(context: Context, intent: Intent) {
     super.onReceive(context, intent)
-    if (intent.action in listOf(REFRESH, Intent.ACTION_DATE_CHANGED, Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED)) refresh(context)
+    if (intent.action in listOf(
+        REFRESH, Intent.ACTION_DATE_CHANGED, Intent.ACTION_TIME_CHANGED,
+        Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_BOOT_COMPLETED,
+        AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED
+    )) refresh(context)
   }
   override fun onDisabled(context: Context) {
     (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(alarmIntent(context))
@@ -107,7 +118,18 @@ class CoachWidgetProvider : AppWidgetProvider() {
       }
       if (Build.VERSION.SDK_INT < 31) manager.notifyAppWidgetViewDataChanged(ids, R.id.coach_list)
       val midnight = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1); set(Calendar.HOUR_OF_DAY,0); set(Calendar.MINUTE,0); set(Calendar.SECOND,0); set(Calendar.MILLISECOND,0) }
-      (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).setWindow(AlarmManager.RTC, midnight.timeInMillis, 60000L, alarmIntent(context))
+      val alarms = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+      val pending = alarmIntent(context)
+      val time = midnight.timeInMillis
+      if (Build.VERSION.SDK_INT < 31 || alarms.canScheduleExactAlarms()) {
+        try {
+          alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pending)
+          return
+        } catch (_: SecurityException) {
+          // The user can revoke exact-alarm access after the permission check.
+        }
+      }
+      alarms.setAndAllowWhileIdle(AlarmManager.RTC, time, pending)
     }
   }
 }

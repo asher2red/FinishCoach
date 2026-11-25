@@ -13,13 +13,19 @@ import React, {
   useState,
 } from "react";
 import { AppState } from "react-native";
-import { emptyState, State } from "../domain/model";
+import {
+  emptyState,
+  localDate,
+  nextLocalMidnight,
+  State,
+} from "../domain/model";
 import { generate } from "../domain/engine";
 import { repository } from "./storage";
 import type { Repository } from "./repository";
 import { reconcileNotifications } from "../services/notifications";
 interface Store {
   state: State;
+  today: string;
   ready: boolean;
   busy: boolean;
   error: AppMessage;
@@ -40,6 +46,7 @@ export function Provider({
   backend?: Repository;
 }) {
   const [state, setState] = useState(emptyState),
+    [today, setToday] = useState(() => localDate()),
     [ready, setReady] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState<AppMessage>(""),
@@ -133,23 +140,40 @@ export function Provider({
     active.current = true;
     void reload();
     const refresh = () => {
+      setToday(localDate());
       if (backend === repository) void mutate((s) => generate(s));
       else void reload();
     };
+    let midnightTimer: ReturnType<typeof setTimeout>;
+    const refreshAndSchedule = () => {
+      refresh();
+      scheduleMidnight();
+    };
+    const scheduleMidnight = () => {
+      clearTimeout(midnightTimer);
+      const now = new Date();
+      midnightTimer = setTimeout(
+        refreshAndSchedule,
+        nextLocalMidnight(now).getTime() - now.getTime(),
+      );
+    };
+    scheduleMidnight();
     const sub = AppState.addEventListener("change", (v) => {
-      if (v === "active") refresh();
+      if (v === "active") refreshAndSchedule();
     });
-    const timer = setInterval(refresh, 60000);
+    const timer = setInterval(refreshAndSchedule, 60000);
     return () => {
       active.current = false;
       sub.remove();
       clearInterval(timer);
+      clearTimeout(midnightTimer);
     };
   }, [backend, reload, mutate]);
   return (
     <Context.Provider
       value={{
         state,
+        today,
         ready,
         busy,
         error,

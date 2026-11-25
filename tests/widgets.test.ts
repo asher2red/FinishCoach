@@ -4,10 +4,12 @@ import { complete, undo, saveRoutine } from "../src/domain/engine";
 import { todayProgress } from "../src/domain/today";
 import {
   makeWidgetSnapshot,
+  makeWidgetPublication,
   expiredSnapshot,
   isSnapshotStale,
 } from "../src/widgets/snapshot";
 import { createWidgetPublisher } from "../src/widgets/publisher";
+import { makeSharedTimeline } from "../src/widgets/timeline";
 const now = new Date(2026, 9, 29, 12);
 const routine = (): Routine => ({
   ...stamp(),
@@ -24,6 +26,22 @@ const routine = (): Routine => ({
   isActive: true,
 });
 describe("widget progress and safe expiration", () => {
+  it("publishes the next local day's own to-dos at midnight", () => {
+    const state = emptyState();
+    saveRoutine(state, routine(), "2026-10-29");
+    complete(state, state.routines[0].id, state.occurrences[0].id);
+    const publication = makeWidgetPublication(state, "ko", now);
+    const midnight = new Date(2026, 9, 30, 0, 0);
+    const entries = makeSharedTimeline(publication).entries;
+    expect(entries[0].props.done).toBe(1);
+    expect(entries[1]).toMatchObject({
+      timestamp: midnight.getTime(),
+      props: { date: "2026-10-30", done: 0, remaining: 1, status: "current" },
+    });
+    expect(isSnapshotStale(entries[0].props, midnight)).toBe(true);
+    expect(isSnapshotStale(entries[1].props, midnight)).toBe(false);
+    expect(entries.at(-1)?.props.status).toBe("stale");
+  });
   it("reuses Today’s denominator, including skips and archived completions", () => {
     const state = emptyState();
     const r = routine();
